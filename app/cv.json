@@ -1,0 +1,95 @@
+{
+  "$schema": "./cv.schema.json",
+  "basics": {
+    "name": "Jens Penneman",
+    "label": "Software engineer",
+    "summary": "Full-stack software engineer met 4 jaar ervaring. Ik bouw dashboards, klantenportalen en koppelingen met externe diensten, van database tot pixel-perfecte interface.",
+    "email": "jenspenneman26@gmail.com",
+    "phone": "+32474180683",
+    "url": "https://jenspenneman.com/",
+    "location": {
+      "address": "Teerlingstraat 69/2",
+      "postalCode": "9190",
+      "city": "Stekene",
+      "countryCode": "BE",
+      "country": "België"
+    },
+    "nationality": "Belg",
+    "driversLicense": ["AM", "B"],
+    "birth": { "place": "Sint-Niklaas", "date": "2002-11-23" },
+    "profiles": [
+      { "network": "LinkedIn", "url": "https://linkedin.com/in/jenspenneman/" },
+      { "network": "GitHub", "url": "https://github.com/JensPenneman" }
+    ]
+  },
+  "work": [
+    {
+      "position": "Full stack software engineer",
+      "name": "Advantitge",
+      "location": "Deinze",
+      "startDate": "2025-07",
+      "endDate": null
+    },
+    {
+      "position": "Full stack software engineer",
+      "name": "Lemon Companies",
+      "location": "Kontich",
+      "startDate": "2024-07",
+      "endDate": "2025-05"
+    },
+    {
+      "position": "Student-zelfstandige",
+      "name": "WEB4YOU",
+      "location": "Stekene",
+      "startDate": "2021-10",
+      "endDate": "2024-06"
+    },
+    {
+      "position": "Stagiair front end engineer",
+      "name": "BASF",
+      "location": "Gent",
+      "startDate": "2023-10",
+      "endDate": "2023-12"
+    }
+  ],
+  "holidayJobs": {
+    "count": 5,
+    "companies": ["Bpost", "Storaenso", "Houtshop Van der Gucht", "V3 Consulting"],
+    "andMore": true,
+    "startYear": "2017",
+    "endYear": "2022"
+  },
+  "skills": [
+    { "name": "Frontend", "keywords": ["React", "NextJS", "TypeScript", "Tailwind", "TanStack Query"] },
+    { "name": "Backend", "keywords": ["NodeJS", "GraphQL", "Hasura", "REST", "PostgreSQL", "Strapi"] },
+    { "name": "Cloud en tooling", "keywords": ["AWS", "Vercel", "Supabase", "Sentry", "Git", "pnpm", "Turborepo"] }
+  ],
+  "education": [
+    {
+      "studyType": "Toegepaste informatica",
+      "institution": "Hogeschool Gent",
+      "startDate": "2020-09",
+      "endDate": "2023-12"
+    },
+    {
+      "studyType": "Industriële informatica & communicatietechnieken",
+      "institution": "GTI Beveren",
+      "startDate": "2018-09",
+      "endDate": "2020-07"
+    },
+    {
+      "studyType": "Elektromechanica",
+      "institution": "Broederschool Stekene",
+      "startDate": "2016-09",
+      "endDate": "2018-07"
+    }
+  ],
+  "certificates": [
+    { "name": "Instructeur", "date": "2024-07", "issuer": "KLJ en de Vlaamse Overheid" },
+    { "name": "Hoofdanimator", "date": "2022-07", "issuer": "KLJ en de Vlaamse Overheid" }
+  ],
+  "languages": [
+    { "language": "Nederlands", "fluency": "Moedertaal" },
+    { "language": "Engels", "fluency": "Zeer goed" }
+  ]
+}

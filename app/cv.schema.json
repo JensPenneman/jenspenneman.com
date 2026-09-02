@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cv.schema.json",
+  "title": "CV data model",
+  "description": "Pure data model for the CV (JSON Resume-inspired). Dates are ISO (YYYY-MM or YYYY-MM-DD), phone is E.164; all presentation (Dutch labels, date formatting, joining) is derived by the UI.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["basics", "work", "holidayJobs", "skills", "education", "certificates", "languages"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "basics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "label", "summary", "email", "phone", "url", "location", "nationality", "driversLicense", "birth", "profiles"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1, "description": "Job title shown after the name" },
+        "summary": { "type": "string", "minLength": 1, "description": "Intro paragraph under the name" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string", "pattern": "^\\+[1-9][0-9]{7,14}$", "description": "E.164, e.g. +32474180683" },
+        "url": { "type": "string", "format": "uri" },
+        "location": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["address", "postalCode", "city", "countryCode", "country"],
+          "properties": {
+            "address": { "type": "string" },
+            "postalCode": { "type": "string" },
+            "city": { "type": "string" },
+            "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+            "country": { "type": "string" }
+          }
+        },
+        "nationality": { "type": "string" },
+        "driversLicense": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "birth": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["place", "date"],
+          "properties": {
+            "place": { "type": "string" },
+            "date": { "type": "string", "format": "date" }
+          }
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["network", "url"],
+            "properties": {
+              "network": { "type": "string" },
+              "url": { "type": "string", "format": "uri" }
+            }
+          }
+        }
+      }
+    },
+    "work": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["position", "name", "location", "startDate", "endDate"],
+        "properties": {
+          "position": { "type": "string" },
+          "name": { "type": "string", "description": "Company name" },
+          "location": { "type": "string", "description": "City" },
+          "startDate": { "$ref": "#/$defs/yearMonth" },
+          "endDate": { "$ref": "#/$defs/yearMonthOrNull", "description": "null = present (heden)" }
+        }
+      }
+    },
+    "holidayJobs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "companies", "andMore", "startYear", "endYear"],
+      "properties": {
+        "count": { "type": "integer", "minimum": 1 },
+        "companies": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "andMore": { "type": "boolean", "description": "true renders an ellipsis after the company list" },
+        "startYear": { "$ref": "#/$defs/year" },
+        "endYear": { "$ref": "#/$defs/year" }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "keywords"],
+        "properties": {
+          "name": { "type": "string", "description": "Category label, e.g. Frontend" },
+          "keywords": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+        }
+      }
+    },
+    "education": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["studyType", "institution", "startDate", "endDate"],
+        "properties": {
+          "studyType": { "type": "string" },
+          "institution": { "type": "string" },
+          "startDate": { "$ref": "#/$defs/yearMonth" },
+          "endDate": { "$ref": "#/$defs/yearMonthOrNull" }
+        }
+      }
+    },
+    "certificates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "date", "issuer"],
+        "properties": {
+          "name": { "type": "string" },
+          "date": { "$ref": "#/$defs/yearMonth" },
+          "issuer": { "type": "string" }
+        }
+      }
+    },
+    "languages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["language", "fluency"],
+        "properties": {
+          "language": { "type": "string" },
+          "fluency": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "year": { "type": "string", "pattern": "^[0-9]{4}$" },
+    "yearMonth": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+    "yearMonthOrNull": {
+      "oneOf": [
+        { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+        { "type": "null" }
+      ]
+    }
+  }
+}

@@ -1,15 +1,40 @@
 import photo from "./photo.jpg";
+import cv from "./cv.json";
+import { addressLine, dateNL, period, phoneDisplay } from "./format";
 
-function Pair({ label, value }: { label: string; value: string }) {
+/* All labels/headings are presentation, so they live here — the JSON stays a
+ * pure data model. */
+const LABELS = {
+  personalia: "Personalia",
+  nationality: "Nationaliteit",
+  license: "Rijbewijs",
+  birthPlace: "Geboorteplaats",
+  birthDate: "Geboortedatum",
+  work: "Werkervaring",
+  holidayJobs: "vakantiejobs",
+  skills: "Vaardigheden",
+  education: "Opleidingen",
+  certificates: "Cursussen (geattesteerd)",
+  languages: "Talen",
+  channels: "Andere informatiekanalen",
+} as const;
+
+type PairT = { label: string; value: string };
+
+function Pairs({ pairs, twoCols = false }: { pairs: PairT[]; twoCols?: boolean }) {
   return (
-    <div className="lr">
-      <dt>{label}</dt>
-      <dd>{value}</dd>
-    </div>
+    <dl className={twoCols ? "pairs cols2" : "pairs"}>
+      {pairs.map((p) => (
+        <div className="lr" key={p.label}>
+          <dt>{p.label}</dt>
+          <dd>{p.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
-function Job({ title, meta }: { title: string; meta: string }) {
+function Entry({ title, meta }: { title: string; meta: string }) {
   return (
     <div className="job">
       <h3>{title}</h3>
@@ -18,105 +43,136 @@ function Job({ title, meta }: { title: string; meta: string }) {
   );
 }
 
+function Section({
+  id,
+  heading,
+  children,
+  contentClass = "content",
+}: {
+  id: string;
+  heading: string;
+  children: React.ReactNode;
+  contentClass?: string;
+}) {
+  return (
+    <section className="row" aria-labelledby={id}>
+      <h2 id={id}>{heading}</h2>
+      <div className={contentClass}>{children}</div>
+    </section>
+  );
+}
+
+const Sep = () => <span aria-hidden="true">&nbsp;&nbsp;-&nbsp;&nbsp;</span>;
+
 export default function Page() {
+  const { basics, work, holidayJobs, skills, education, certificates, languages } = cv;
+
+  const personalia: PairT[] = [
+    { label: LABELS.nationality, value: basics.nationality },
+    { label: LABELS.license, value: basics.driversLicense.join(", ") },
+    { label: LABELS.birthPlace, value: basics.birth.place },
+    { label: LABELS.birthDate, value: dateNL(basics.birth.date) },
+  ];
+  const skillPairs: PairT[] = skills.map((s) => ({ label: s.name, value: s.keywords.join(", ") }));
+  const languagePairs: PairT[] = languages.map((l) => ({ label: l.fluency, value: l.language }));
+  const channels: string[] = [basics.url, ...basics.profiles.map((p) => p.url)];
+  const certIssuers = [...new Set(certificates.map((c) => c.issuer))];
+
   return (
     <main className="stage">
       <article className="wrap">
         <div className="sheet">
           <header className="row head">
             <div className="aside">
-              <img className="photo" src={photo.src} alt="Portretfoto van Jens Penneman" width={708} height={708} />
+              <img
+                className="photo"
+                src={photo.src}
+                alt={`Portretfoto van ${basics.name}`}
+                width={708}
+                height={708}
+              />
             </div>
             <div className="content">
               <p className="contact">
-                Teerlingstraat 69/2, 9190 Stekene, België&nbsp;&nbsp;-&nbsp;&nbsp;
-                <a href="mailto:jenspenneman26@gmail.com">jenspenneman26@gmail.com</a>&nbsp;&nbsp;-&nbsp;&nbsp;
-                <a href="tel:+32474180683">+32 474 18 06 83</a>
+                {addressLine(basics.location)}
+                <Sep />
+                <a href={`mailto:${basics.email}`}>{basics.email}</a>
+                <Sep />
+                <a href={`tel:${basics.phone}`}>{phoneDisplay(basics.phone)}</a>
               </p>
-              <h1>Jens Penneman, Software engineer</h1>
-              <p className="intro">
-                Full-stack software engineer met 4 jaar ervaring. Ik bouw dashboards, klantenportalen en
-                koppelingen met externe diensten, van database tot pixel-perfecte interface.
-              </p>
+              <h1>
+                {basics.name}, {basics.label}
+              </h1>
+              <p className="intro">{basics.summary}</p>
             </div>
           </header>
 
-          <section className="row">
-            <h2>Personalia</h2>
-            <div className="content">
-              <dl className="pairs cols2">
-                <Pair label="Nationaliteit" value="Belg" />
-                <Pair label="Rijbewijs" value="AM, B" />
-                <Pair label="Geboorteplaats" value="Sint-Niklaas" />
-                <Pair label="Geboortedatum" value="23/11/2002" />
-              </dl>
-            </div>
-          </section>
+          <Section id="personalia" heading={LABELS.personalia}>
+            <Pairs pairs={personalia} twoCols />
+          </Section>
 
-          <section className="row">
-            <h2>Werkervaring</h2>
-            <div className="content jobs">
-              <Job title="Full stack software engineer" meta="bij Advantitge te Deinze, Juli 2025 - heden" />
-              <Job title="Full stack software engineer" meta="bij Lemon Companies te Kontich, Juli 2024 - Mei 2025" />
-              <Job title="Student-zelfstandige" meta="bij WEB4YOU te Stekene, Oktober 2021 - Juni 2024" />
-              <Job title="Stagiair front end engineer" meta="bij BASF te Gent, Oktober 2023 - December 2023" />
-              <div className="job vak">
-                <p className="vaktitle">+ 5 vakantiejobs</p>
-                <p className="meta">bij Bpost, Storaenso, Houtshop Van der Gucht, V3 Consulting… 2017 - 2022</p>
-              </div>
-            </div>
-          </section>
-
-          <section className="row">
-            <h2>Vaardigheden</h2>
-            <div className="content">
-              <dl className="pairs">
-                <Pair label="Frontend" value="React, NextJS, TypeScript, Tailwind, TanStack Query" />
-                <Pair label="Backend" value="NodeJS, GraphQL, Hasura, REST, PostgreSQL, Strapi" />
-                <Pair label="Cloud en tooling" value="AWS, Vercel, Supabase, Sentry, Git, pnpm, Turborepo" />
-              </dl>
-            </div>
-          </section>
-
-          <section className="row">
-            <h2>Opleidingen</h2>
-            <div className="content jobs opl">
-              <Job title="Toegepaste informatica" meta="bij Hogeschool Gent, September 2020 - December 2023" />
-              <Job title="Industriële informatica & communicatietechnieken" meta="bij GTI Beveren, September 2018 - Juli 2020" />
-              <Job title="Elektromechanica" meta="bij Broederschool Stekene, September 2016 - Juli 2018" />
-            </div>
-          </section>
-
-          <section className="row">
-            <h2>Cursussen (geattesteerd)</h2>
-            <div className="content">
-              <p className="course">
-                <strong>Instructeur</strong> (2024) en <strong>Hoofdanimator</strong> (2022) bij KLJ en de Vlaamse
-                Overheid
+          <Section id="werkervaring" heading={LABELS.work} contentClass="content jobs">
+            {work.map((w) => (
+              <Entry
+                key={w.name + w.startDate}
+                title={w.position}
+                meta={`bij ${w.name} te ${w.location}, ${period(w.startDate, w.endDate)}`}
+              />
+            ))}
+            <div className="job vak">
+              <p className="vaktitle">{`+ ${holidayJobs.count} ${LABELS.holidayJobs}`}</p>
+              <p className="meta">
+                {`bij ${holidayJobs.companies.join(", ")}${holidayJobs.andMore ? "…" : ""} ${holidayJobs.startYear} - ${holidayJobs.endYear}`}
               </p>
             </div>
-          </section>
+          </Section>
 
-          <section className="row">
-            <h2>Talen</h2>
-            <div className="content">
-              <dl className="pairs cols2">
-                <Pair label="Moedertaal" value="Nederlands" />
-                <Pair label="Zeer goed" value="Engels" />
-              </dl>
-            </div>
-          </section>
+          <Section id="vaardigheden" heading={LABELS.skills}>
+            <Pairs pairs={skillPairs} />
+          </Section>
 
-          <section className="row">
-            <h2>Andere informatiekanalen</h2>
-            <div className="content">
-              <ul className="links">
-                <li><a href="https://jenspenneman.com/">https://jenspenneman.com/</a></li>
-                <li><a href="https://linkedin.com/in/jenspenneman/">https://linkedin.com/in/jenspenneman/</a></li>
-                <li><a href="https://github.com/JensPenneman">https://github.com/JensPenneman</a></li>
-              </ul>
-            </div>
-          </section>
+          <Section id="opleidingen" heading={LABELS.education} contentClass="content jobs opl">
+            {education.map((e) => (
+              <Entry
+                key={e.institution + e.startDate}
+                title={e.studyType}
+                meta={`bij ${e.institution}, ${period(e.startDate, e.endDate)}`}
+              />
+            ))}
+          </Section>
+
+          <Section id="cursussen" heading={LABELS.certificates}>
+            <p className="course">
+              {certIssuers.map((issuer, gi) => (
+                <span key={issuer}>
+                  {gi > 0 && "; "}
+                  {certificates
+                    .filter((c) => c.issuer === issuer)
+                    .map((c, i) => (
+                      <span key={c.name}>
+                        {i > 0 && " en "}
+                        <strong>{c.name}</strong> ({c.date.slice(0, 4)})
+                      </span>
+                    ))}
+                  {` bij ${issuer}`}
+                </span>
+              ))}
+            </p>
+          </Section>
+
+          <Section id="talen" heading={LABELS.languages}>
+            <Pairs pairs={languagePairs} twoCols />
+          </Section>
+
+          <Section id="kanalen" heading={LABELS.channels}>
+            <ul className="links">
+              {channels.map((url) => (
+                <li key={url}>
+                  <a href={url}>{url}</a>
+                </li>
+              ))}
+            </ul>
+          </Section>
         </div>
       </article>
     </main>
