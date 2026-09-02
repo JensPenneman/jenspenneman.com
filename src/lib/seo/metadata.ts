@@ -6,6 +6,16 @@ import { pageTitle } from "./pageTitle";
 import { familyName, givenName } from "./personName";
 import { siteUrl } from "./siteUrl";
 
+/** Search-engine verification tokens, supplied through the environment. */
+function verification(): Metadata["verification"] {
+  const google = process.env["GOOGLE_SITE_VERIFICATION"];
+  const bing = process.env["BING_SITE_VERIFICATION"];
+  return {
+    ...(google ? { google } : {}),
+    ...(bing ? { other: { "msvalidate.01": bing } } : {}),
+  };
+}
+
 export function buildMetadata(locale: Locale): Metadata {
   const title = pageTitle(locale);
   const description = t(cvData.basics.summary, locale);
@@ -26,6 +36,7 @@ export function buildMetadata(locale: Locale): Metadata {
       canonical: `/${locale}`,
       languages: { ...languages, "x-default": `/${DEFAULT_LOCALE}` },
     },
+    verification: verification(),
     referrer: "strict-origin-when-cross-origin",
     formatDetection: { telephone: false },
     robots: {

@@ -27,6 +27,7 @@ describe("buildJsonLd", () => {
     expect(ld.mainEntity.sameAs).toEqual(cvData.basics.profiles.map((p) => p.url));
     expect(ld.mainEntity.image).toBe("https://example.test/photo.jpg");
     expect(ld.mainEntity.worksFor).toEqual({ "@type": "Organization", name: "Advantitge" });
+    expect(ld.mainEntity.nationality).toEqual({ "@type": "Country", name: "Belg" });
   });
 
   it("is serialisable without loss", () => {

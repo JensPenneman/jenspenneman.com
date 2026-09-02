@@ -1,3 +1,4 @@
+import type { ProfilePage, WithContext } from "schema-dts";
 import { currentEmployer } from "@/lib/cv/currentEmployer";
 import type { CvData } from "@/lib/cv/data";
 import type { Locale } from "@/lib/i18n/locales";
@@ -37,7 +38,7 @@ export function buildJsonLd(cv: CvData, locale: Locale, photoUrl: URL, today: Da
       url: cv.basics.url,
       birthDate: cv.basics.birth.date,
       birthPlace: { "@type": "Place", name: cv.basics.birth.place },
-      nationality: t(cv.basics.nationality, locale),
+      nationality: { "@type": "Country", name: t(cv.basics.nationality, locale) },
       knowsLanguage: cv.languages.map((l) => t(l.language, locale)),
       knowsAbout: cv.skills.flatMap((s) => s.keywords),
       ...(employer && { worksFor: { "@type": "Organization", name: employer.name } }),
@@ -47,5 +48,5 @@ export function buildJsonLd(cv: CvData, locale: Locale, photoUrl: URL, today: Da
       })),
       sameAs: cv.basics.profiles.map((p) => p.url),
     },
-  };
+  } satisfies WithContext<ProfilePage>;
 }

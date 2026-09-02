@@ -74,8 +74,11 @@ canonical + hreflang, robots (+googleBot), Open Graph `profile` with a
 **build-time generated 1200x630 card** (`app/[locale]/opengraph-image.tsx`,
 rendered with TeX Gyre Heros — a free Helvetica clone used only at build time),
 Twitter card, icons, `manifest.webmanifest`, `sitemap.xml`, `robots.txt`,
-JSON-LD `ProfilePage`/`Person`. After deploying: verify the domain in Google Search
-Console and submit `/sitemap.xml`.
+JSON-LD `ProfilePage`/`Person`. Search engines: `npm run indexnow` pings
+Bing/Yandex/Seznam/Naver (IndexNow; key file in public/) after a production
+deploy; Google only takes the sitemap via Search Console. Verification tokens
+go in the Vercel environment as `GOOGLE_SITE_VERIFICATION` and
+`BING_SITE_VERIFICATION` (rendered as meta tags when set).
 
 **Analytics** (both cookieless, so no consent banner):
 - Vercel Web Analytics (`@vercel/analytics`), rendered only on Vercel.

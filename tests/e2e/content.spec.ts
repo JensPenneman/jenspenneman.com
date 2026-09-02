@@ -1,3 +1,4 @@
+import { readdirSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { cvData } from "@/lib/cv/data";
 import { getLabels } from "@/lib/i18n/getLabels";
@@ -117,5 +118,15 @@ test.describe("content", () => {
     expect(text.startsWith(`# ${cvData.basics.name}`)).toBe(true);
     expect(text).toContain("> ");
     for (const locale of LOCALES) expect(text).toContain(`/${locale})`);
+  });
+
+  test("serves the IndexNow key file", async ({ request }) => {
+    const key = readdirSync("public")
+      .map((f) => /^([0-9a-f]{32})\.txt$/.exec(f)?.[1])
+      .find((k) => k !== undefined);
+    expect(key).toBeTruthy();
+    const res = await request.get(`/${key}.txt`);
+    expect(res.status()).toBe(200);
+    expect((await res.text()).trim()).toBe(key);
   });
 });

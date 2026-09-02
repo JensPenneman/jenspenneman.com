@@ -23,7 +23,8 @@
     "images": "node scripts/images.mjs",
     "knip": "knip",
     "check": "npm run lint && npm run typecheck && npm run knip && npm run test",
-    "prepare": "node scripts/images.mjs && node scripts/hooks.mjs"
+    "prepare": "node scripts/images.mjs && node scripts/hooks.mjs",
+    "indexnow": "node scripts/indexnow.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
@@ -52,6 +53,7 @@
     "knip": "^6.34.0",
     "lefthook": "^2.1.12",
     "lighthouse": "^13.4.1",
+    "schema-dts": "^2.0.0",
     "sharp": "^0.35.4",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
