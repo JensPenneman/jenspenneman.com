@@ -13,6 +13,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import { launch } from "chrome-launcher";
 import lighthouse from "lighthouse";
+import { localTrustAnchor } from "./localCert.mjs";
 
 const PORT = 4174;
 /** @type {readonly [string, ...string[]]} */
@@ -23,15 +24,18 @@ const FLOORS = { performance: 0.95, accessibility: 1, "best-practices": 1, seo: 
 
 /** @param {string} locale */
 const urlFor = (locale) => `https://127.0.0.1:${PORT}/${locale}`;
+/* validate the preview certificate against its own trust anchor rather than
+ * switching validation off */
+const ca = localTrustAnchor();
 
 /**
- * GET a URL over the self-signed cert and drain the body (the server is only
+ * GET a URL over the local HTTPS cert and drain the body (the server is only
  * warm once it has actually read, compressed and written the file).
  * @param {string} url @returns {Promise<void>}
  */
 function warmUp(url) {
   return new Promise((resolve, reject) => {
-    const req = get(url, { rejectUnauthorized: false }, (res) => {
+    const req = get(url, { ca }, (res) => {
       res.resume();
       res.once("end", () => resolve());
       res.once("error", reject);

@@ -65,3 +65,15 @@ export function ensureLocalCert() {
   if (!existsSync(CERT) || !existsSync(KEY)) generate();
   return { cert: readFileSync(CERT), key: readFileSync(KEY) };
 }
+
+/** The certificate authority a client must trust to validate the preview
+ * server properly (instead of disabling validation): mkcert's root CA when
+ * the cert came from mkcert, otherwise the self-signed cert itself.
+ * @returns {Buffer} */
+export function localTrustAnchor() {
+  const { cert } = ensureLocalCert();
+  if (!hasMkcert()) return cert;
+  const caRoot = execFileSync("mkcert", ["-CAROOT"], { encoding: "utf8" }).trim();
+  const rootCa = join(caRoot, "rootCA.pem");
+  return existsSync(rootCa) ? readFileSync(rootCa) : cert;
+}
