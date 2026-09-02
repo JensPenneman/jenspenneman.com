@@ -1,0 +1,22 @@
+{
+  "name": "cv-site",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "gen": "bash tools/gen.sh",
+    "dev": "next dev",
+    "build": "next build",
+    "preview": "python3 -m http.server -d out"
+  },
+  "dependencies": {
+    "next": "^16.3.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "typescript": "^7.0.2"
+  }
+}
