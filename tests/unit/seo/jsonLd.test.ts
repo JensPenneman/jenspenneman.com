@@ -6,15 +6,20 @@ describe("buildJsonLd", () => {
   const base = new URL("https://example.test/");
   const ld = buildJsonLd(
     cvData,
+    "nl-BE",
     new URL("/photo.jpg", base),
     new Date("2026-09-02T10:00:00Z"),
     base,
   );
 
-  it("is a ProfilePage wrapping a Person", () => {
+  it("is a ProfilePage wrapping a Person, with a shared Person id across locales", () => {
     expect(ld["@type"]).toBe("ProfilePage");
-    expect(ld.mainEntity["@type"]).toBe("Person");
+    expect(ld.url).toBe("https://example.test/nl-BE");
+    expect(ld.inLanguage).toBe("nl-BE");
     expect(ld.mainEntity["@id"]).toBe("https://example.test/#person");
+    const fr = buildJsonLd(cvData, "fr-BE", new URL("/photo.jpg", base), new Date(), base);
+    expect(fr.mainEntity["@id"]).toBe(ld.mainEntity["@id"]);
+    expect(fr.mainEntity.jobTitle).toBe("Ingénieur logiciel");
     expect(ld.dateModified).toBe("2026-09-02");
   });
 

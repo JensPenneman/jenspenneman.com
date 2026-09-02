@@ -27,7 +27,9 @@ const SCHEME = plainHttp ? "http" : "https";
 /**
  * @typedef {{ key: string, value: string }} Header
  * @typedef {{ source: string, headers: Header[] }} HeaderRule
- * @typedef {{ headers?: HeaderRule[] }} VercelConfig
+ * @typedef {{ type: string, key: string, value?: string }} HasRule
+ * @typedef {{ source: string, destination: string, permanent?: boolean, has?: HasRule[] }} RedirectRule
+ * @typedef {{ headers?: HeaderRule[], redirects?: RedirectRule[] }} VercelConfig
  */
 
 /** @type {VercelConfig} */
@@ -49,6 +51,27 @@ const headerRules = (vercel.headers ?? []).map((rule) => ({
   test: toRegExp(rule.source),
   headers: rule.headers,
 }));
+const redirectRules = (vercel.redirects ?? []).map((rule) => ({
+  test: toRegExp(rule.source),
+  rule,
+}));
+
+/**
+ * First vercel.json redirect whose source matches and whose `has` header
+ * conditions (case-insensitive regex on the header value) all hold.
+ * @param {string} pathname @param {import("node:http").IncomingHttpHeaders} reqHeaders
+ */
+function matchRedirect(pathname, reqHeaders) {
+  return redirectRules.find(({ test, rule }) => {
+    if (!test.test(pathname)) return false;
+    return (rule.has ?? []).every((h) => {
+      if (h.type !== "header") return false;
+      const raw = reqHeaders[h.key.toLowerCase()];
+      const value = Array.isArray(raw) ? raw.join(",") : (raw ?? "");
+      return h.value ? new RegExp(h.value, "i").test(value) : value !== "";
+    });
+  })?.rule;
+}
 
 /** @type {Record<string, string>} */
 const MIME = {
@@ -101,6 +124,16 @@ function compress(body, encoding) {
 const handler = (req, res) => {
   const url = new URL(req.url ?? "/", `${SCHEME}://127.0.0.1:${PORT}`);
   const pathname = decodeURIComponent(url.pathname);
+
+  const redirect = matchRedirect(pathname, req.headers);
+  if (redirect) {
+    res.writeHead(redirect.permanent ? 308 : 307, {
+      Location: redirect.destination,
+      Vary: "Accept-Language",
+    });
+    res.end();
+    return;
+  }
 
   if (pathname.length > 1 && pathname.endsWith("/")) {
     res.writeHead(308, { Location: `${pathname.slice(0, -1)}${url.search}` });

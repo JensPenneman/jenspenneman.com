@@ -2,8 +2,18 @@
   "$schema": "./cv.schema.json",
   "basics": {
     "name": "Jens Penneman",
-    "label": "Software engineer",
-    "summary": "Full-stack software engineer met 4 jaar ervaring. Ik bouw dashboards, klantenportalen en koppelingen met externe diensten, van database tot pixel-perfecte interface.",
+    "label": {
+      "nl-BE": "Software engineer",
+      "en-GB": "Software engineer",
+      "fr-BE": "Ingénieur logiciel",
+      "de-BE": "Softwareentwickler"
+    },
+    "summary": {
+      "nl-BE": "Full-stack software engineer met 4 jaar ervaring. Ik bouw dashboards, klantenportalen en koppelingen met externe diensten, van database tot pixel-perfecte interface.",
+      "en-GB": "Full-stack software engineer with 4 years of experience. I build dashboards, customer portals and integrations with external services, from database to pixel-perfect interface.",
+      "fr-BE": "Ingénieur logiciel full-stack avec 4 ans d'expérience. Je conçois des tableaux de bord, des portails clients et des intégrations avec des services externes, de la base de données à l'interface au pixel près.",
+      "de-BE": "Full-Stack-Softwareentwickler mit 4 Jahren Erfahrung. Ich baue Dashboards, Kundenportale und Anbindungen an externe Dienste, von der Datenbank bis zur pixelgenauen Oberfläche."
+    },
     "email": "jenspenneman26@gmail.com",
     "phone": "+32474180683",
     "url": "https://jenspenneman.com/",
@@ -12,42 +22,101 @@
       "postalCode": "9190",
       "city": "Stekene",
       "countryCode": "BE",
-      "country": "België"
+      "country": {
+        "nl-BE": "België",
+        "en-GB": "Belgium",
+        "fr-BE": "Belgique",
+        "de-BE": "Belgien"
+      }
     },
-    "nationality": "Belg",
+    "nationality": {
+      "nl-BE": "Belg",
+      "en-GB": "Belgian",
+      "fr-BE": "Belge",
+      "de-BE": "Belgier"
+    },
     "driversLicense": ["AM", "B"],
-    "birth": { "place": "Sint-Niklaas", "date": "2002-11-23" },
+    "birth": {
+      "place": "Sint-Niklaas",
+      "date": "2002-11-23"
+    },
     "profiles": [
-      { "network": "LinkedIn", "url": "https://linkedin.com/in/jenspenneman/" },
-      { "network": "GitHub", "url": "https://github.com/JensPenneman" }
+      {
+        "network": "LinkedIn",
+        "url": "https://linkedin.com/in/jenspenneman/"
+      },
+      {
+        "network": "GitHub",
+        "url": "https://github.com/JensPenneman"
+      }
     ]
   },
   "work": [
     {
-      "position": "Full stack software engineer",
+      "position": {
+        "nl-BE": "Full stack software engineer",
+        "en-GB": "Full stack software engineer",
+        "fr-BE": "Ingénieur logiciel full stack",
+        "de-BE": "Full-Stack-Softwareentwickler"
+      },
       "name": "Advantitge",
-      "location": "Deinze",
+      "location": {
+        "nl-BE": "Deinze",
+        "en-GB": "Deinze",
+        "fr-BE": "Deinze",
+        "de-BE": "Deinze"
+      },
       "startDate": "2025-07",
       "endDate": null
     },
     {
-      "position": "Full stack software engineer",
+      "position": {
+        "nl-BE": "Full stack software engineer",
+        "en-GB": "Full stack software engineer",
+        "fr-BE": "Ingénieur logiciel full stack",
+        "de-BE": "Full-Stack-Softwareentwickler"
+      },
       "name": "Lemon Companies",
-      "location": "Kontich",
+      "location": {
+        "nl-BE": "Kontich",
+        "en-GB": "Kontich",
+        "fr-BE": "Kontich",
+        "de-BE": "Kontich"
+      },
       "startDate": "2024-07",
       "endDate": "2025-05"
     },
     {
-      "position": "Student-zelfstandige",
+      "position": {
+        "nl-BE": "Student-zelfstandige",
+        "en-GB": "Self-employed student",
+        "fr-BE": "Étudiant-indépendant",
+        "de-BE": "Selbstständiger Student"
+      },
       "name": "WEB4YOU",
-      "location": "Stekene",
+      "location": {
+        "nl-BE": "Stekene",
+        "en-GB": "Stekene",
+        "fr-BE": "Stekene",
+        "de-BE": "Stekene"
+      },
       "startDate": "2021-10",
       "endDate": "2024-06"
     },
     {
-      "position": "Stagiair front end engineer",
+      "position": {
+        "nl-BE": "Stagiair front end engineer",
+        "en-GB": "Front-end engineering intern",
+        "fr-BE": "Stagiaire ingénieur front-end",
+        "de-BE": "Praktikant Front-End-Entwicklung"
+      },
       "name": "BASF",
-      "location": "Gent",
+      "location": {
+        "nl-BE": "Gent",
+        "en-GB": "Ghent",
+        "fr-BE": "Gand",
+        "de-BE": "Gent"
+      },
       "startDate": "2023-10",
       "endDate": "2023-12"
     }
@@ -61,44 +130,128 @@
   },
   "skills": [
     {
-      "name": "Frontend",
+      "name": {
+        "nl-BE": "Frontend",
+        "en-GB": "Frontend",
+        "fr-BE": "Frontend",
+        "de-BE": "Frontend"
+      },
       "keywords": ["React", "NextJS", "TypeScript", "Tailwind", "TanStack Query"]
     },
     {
-      "name": "Backend",
+      "name": {
+        "nl-BE": "Backend",
+        "en-GB": "Backend",
+        "fr-BE": "Backend",
+        "de-BE": "Backend"
+      },
       "keywords": ["NodeJS", "GraphQL", "Hasura", "REST", "PostgreSQL", "Strapi"]
     },
     {
-      "name": "Cloud en tooling",
+      "name": {
+        "nl-BE": "Cloud en tooling",
+        "en-GB": "Cloud & tooling",
+        "fr-BE": "Cloud et outils",
+        "de-BE": "Cloud & Tooling"
+      },
       "keywords": ["AWS", "Vercel", "Supabase", "Sentry", "Git", "pnpm", "Turborepo"]
     }
   ],
   "education": [
     {
-      "studyType": "Toegepaste informatica",
+      "studyType": {
+        "nl-BE": "Toegepaste informatica",
+        "en-GB": "Applied Computer Science",
+        "fr-BE": "Informatique appliquée",
+        "de-BE": "Angewandte Informatik"
+      },
       "institution": "Hogeschool Gent",
       "startDate": "2020-09",
       "endDate": "2023-12"
     },
     {
-      "studyType": "Industriële informatica & communicatietechnieken",
+      "studyType": {
+        "nl-BE": "Industriële informatica & communicatietechnieken",
+        "en-GB": "Industrial IT & Communication Technology",
+        "fr-BE": "Informatique industrielle & techniques de communication",
+        "de-BE": "Industrielle Informatik & Kommunikationstechnik"
+      },
       "institution": "GTI Beveren",
       "startDate": "2018-09",
       "endDate": "2020-07"
     },
     {
-      "studyType": "Elektromechanica",
+      "studyType": {
+        "nl-BE": "Elektromechanica",
+        "en-GB": "Electromechanics",
+        "fr-BE": "Électromécanique",
+        "de-BE": "Elektromechanik"
+      },
       "institution": "Broederschool Stekene",
       "startDate": "2016-09",
       "endDate": "2018-07"
     }
   ],
   "certificates": [
-    { "name": "Instructeur", "date": "2024-07", "issuer": "KLJ en de Vlaamse Overheid" },
-    { "name": "Hoofdanimator", "date": "2022-07", "issuer": "KLJ en de Vlaamse Overheid" }
+    {
+      "name": {
+        "nl-BE": "Instructeur",
+        "en-GB": "Instructor",
+        "fr-BE": "Instructeur",
+        "de-BE": "Instruktor"
+      },
+      "date": "2024-07",
+      "issuer": {
+        "nl-BE": "KLJ en de Vlaamse Overheid",
+        "en-GB": "KLJ and the Flemish Government",
+        "fr-BE": "KLJ et le Gouvernement flamand",
+        "de-BE": "KLJ und die Flämische Regierung"
+      }
+    },
+    {
+      "name": {
+        "nl-BE": "Hoofdanimator",
+        "en-GB": "Senior youth leader",
+        "fr-BE": "Animateur en chef",
+        "de-BE": "Hauptanimator"
+      },
+      "date": "2022-07",
+      "issuer": {
+        "nl-BE": "KLJ en de Vlaamse Overheid",
+        "en-GB": "KLJ and the Flemish Government",
+        "fr-BE": "KLJ et le Gouvernement flamand",
+        "de-BE": "KLJ und die Flämische Regierung"
+      }
+    }
   ],
   "languages": [
-    { "language": "Nederlands", "fluency": "Moedertaal" },
-    { "language": "Engels", "fluency": "Zeer goed" }
+    {
+      "language": {
+        "nl-BE": "Nederlands",
+        "en-GB": "Dutch",
+        "fr-BE": "Néerlandais",
+        "de-BE": "Niederländisch"
+      },
+      "fluency": {
+        "nl-BE": "Moedertaal",
+        "en-GB": "Native language",
+        "fr-BE": "Langue maternelle",
+        "de-BE": "Muttersprache"
+      }
+    },
+    {
+      "language": {
+        "nl-BE": "Engels",
+        "en-GB": "English",
+        "fr-BE": "Anglais",
+        "de-BE": "Englisch"
+      },
+      "fluency": {
+        "nl-BE": "Zeer goed",
+        "en-GB": "Very good",
+        "fr-BE": "Très bon",
+        "de-BE": "Sehr gut"
+      }
+    }
   ]
 }

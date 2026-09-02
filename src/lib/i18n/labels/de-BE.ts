@@ -1,0 +1,28 @@
+import type { Labels } from "../labelsType";
+
+export const labels: Labels = {
+  language: "Sprache",
+  personalia: "Persönliche Daten",
+  nationality: "Staatsangehörigkeit",
+  license: "Führerschein",
+  birthPlace: "Geburtsort",
+  birthDate: "Geburtsdatum",
+  work: "Berufserfahrung",
+  skills: "Kenntnisse",
+  education: "Ausbildung",
+  certificates: "Kurse (zertifiziert)",
+  languages: "Sprachen",
+  channels: "Weitere Kanäle",
+  website: "Website",
+  photoAlt: "Porträtfoto von",
+  present: "heute",
+  and: "und",
+  by: "bei",
+  holidayJobs: (count) => `+ ${count} Ferienjobs`,
+  workOrg: (company, city) => `bei ${company} in ${city}`,
+  educationOrg: (institution) => `bei ${institution}`,
+  holidayJobsMeta: (companies, startYear, endYear) => `bei ${companies} ${startYear} - ${endYear}`,
+  notFoundTitle: "Seite nicht gefunden",
+  notFoundText: "Diese Seite existiert nicht.",
+  notFoundBack: "Zurück zum Lebenslauf",
+};

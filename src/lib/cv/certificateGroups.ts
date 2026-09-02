@@ -1,14 +1,20 @@
+import type { Locale } from "@/lib/i18n/locales";
+import { t } from "@/lib/i18n/localizedString";
 import type { Certificate } from "./data";
 
 export type CertificateGroup = { issuer: string; certificates: Certificate[] };
 
-/** Groups certificates by issuer, preserving first-seen issuer order. */
-export function certificateGroups(certificates: readonly Certificate[]): CertificateGroup[] {
+/** Groups certificates by (localized) issuer, preserving first-seen order. */
+export function certificateGroups(
+  certificates: readonly Certificate[],
+  locale: Locale,
+): CertificateGroup[] {
   const groups = new Map<string, Certificate[]>();
   for (const c of certificates) {
-    const list = groups.get(c.issuer) ?? [];
+    const issuer = t(c.issuer, locale);
+    const list = groups.get(issuer) ?? [];
     list.push(c);
-    groups.set(c.issuer, list);
+    groups.set(issuer, list);
   }
   return [...groups].map(([issuer, certs]) => ({ issuer, certificates: certs }));
 }

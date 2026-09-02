@@ -1,15 +1,15 @@
 import type { CvData } from "@/lib/cv/data";
 import { holidayJobsMeta } from "@/lib/cv/holidayJobsMeta";
-import { LABELS } from "@/lib/labels";
+import type { Labels } from "@/lib/i18n/labelsType";
 
-type Props = { jobs: CvData["holidayJobs"] };
+type Props = { jobs: CvData["holidayJobs"]; labels: Labels };
 
 /** Compact "+ N vakantiejobs" entry closing the work section. */
-export function HolidayJobs({ jobs }: Props) {
+export function HolidayJobs({ jobs, labels }: Props) {
   return (
     <div className="job vak">
-      <p className="vaktitle">{`+ ${jobs.count} ${LABELS.holidayJobs}`}</p>
-      <p className="meta">{holidayJobsMeta(jobs)}</p>
+      <p className="vaktitle">{labels.holidayJobs(jobs.count)}</p>
+      <p className="meta">{holidayJobsMeta(jobs, labels)}</p>
     </div>
   );
 }

@@ -1,26 +1,29 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { LOCALES } from "@/lib/i18n/locales";
 
 test.describe("accessibility", () => {
-  test("passes axe at WCAG 2.2 AAA plus best practices", async ({ page }) => {
-    await page.goto("/");
-    const results = await new AxeBuilder({ page })
-      .withTags([
-        "wcag2a",
-        "wcag2aa",
-        "wcag2aaa",
-        "wcag21a",
-        "wcag21aa",
-        "wcag22aa",
-        "best-practice",
-      ])
-      .analyze();
-    expect(results.violations).toEqual([]);
-  });
+  for (const locale of LOCALES) {
+    test(`passes axe at WCAG 2.2 AAA plus best practices (${locale})`, async ({ page }) => {
+      await page.goto(`/${locale}`);
+      const results = await new AxeBuilder({ page })
+        .withTags([
+          "wcag2a",
+          "wcag2aa",
+          "wcag2aaa",
+          "wcag21a",
+          "wcag21aa",
+          "wcag22aa",
+          "best-practice",
+        ])
+        .analyze();
+      expect(results.violations).toEqual([]);
+    });
+  }
 
   test("passes axe AAA in dark mode too", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "dark" });
-    await page.goto("/");
+    await page.goto("/nl-BE");
     const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     expect(bg).not.toBe("rgb(255, 255, 255)");
     const results = await new AxeBuilder({ page })
@@ -41,7 +44,7 @@ test.describe("accessibility", () => {
     page,
   }) => {
     await page.emulateMedia({ contrast: "more" });
-    await page.goto("/");
+    await page.goto("/nl-BE");
     const probe = await page.evaluate(() => {
       const ctx = document.createElement("canvas").getContext("2d") as CanvasRenderingContext2D;
       const rgb = (css: string) => {
@@ -76,7 +79,7 @@ test.describe("accessibility", () => {
 
   test("increased contrast in dark mode stays AAA", async ({ page }) => {
     await page.emulateMedia({ contrast: "more", colorScheme: "dark" });
-    await page.goto("/");
+    await page.goto("/nl-BE");
     const results = await new AxeBuilder({ page })
       .withTags([
         "wcag2a",
@@ -97,7 +100,7 @@ test.describe("accessibility", () => {
   }) => {
     test.skip(browserName === "webkit", "WebKit does not implement forced-colors emulation");
     await page.emulateMedia({ forcedColors: "active" });
-    await page.goto("/");
+    await page.goto("/nl-BE");
     const probe = await page.evaluate(() => {
       const dd = document.querySelector(".pairs dd") as Element;
       const link = document.querySelector(".links a") as Element;
@@ -116,7 +119,7 @@ test.describe("accessibility", () => {
   });
 
   test("has a single h1 and a main landmark", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/nl-BE");
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     await expect(page.getByRole("main")).toHaveCount(1);
   });

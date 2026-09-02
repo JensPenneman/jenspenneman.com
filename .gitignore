@@ -10,3 +10,4 @@ test-results/
 lefthook-local.yml
 .certs/
 src/assets/generated/
+public/img/

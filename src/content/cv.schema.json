@@ -2,12 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "cv.schema.json",
   "title": "CV data model",
-  "description": "Pure data model for the CV (JSON Resume-inspired). Dates are ISO (YYYY-MM or YYYY-MM-DD), phone is E.164; all presentation (Dutch labels, date formatting, joining) is derived by the UI.",
+  "description": "Pure data model for the CV (JSON Resume-inspired). Dates are ISO (YYYY-MM or YYYY-MM-DD), phone is E.164; human-language fields are localized objects with all four locales; all presentation (labels, date formatting, joining) is derived by the UI.",
   "type": "object",
   "additionalProperties": false,
   "required": ["basics", "work", "holidayJobs", "skills", "education", "certificates", "languages"],
   "properties": {
-    "$schema": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
     "basics": {
       "type": "object",
       "additionalProperties": false,
@@ -25,45 +27,76 @@
         "profiles"
       ],
       "properties": {
-        "name": { "type": "string", "minLength": 1 },
-        "label": {
+        "name": {
           "type": "string",
-          "minLength": 1,
+          "minLength": 1
+        },
+        "label": {
+          "$ref": "#/$defs/localized",
           "description": "Job title shown after the name"
         },
         "summary": {
-          "type": "string",
-          "minLength": 1,
+          "$ref": "#/$defs/localized",
           "description": "Intro paragraph under the name"
         },
-        "email": { "type": "string", "format": "email" },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
         "phone": {
           "type": "string",
           "pattern": "^\\+[1-9][0-9]{7,14}$",
           "description": "E.164, e.g. +32474180683"
         },
-        "url": { "type": "string", "format": "uri" },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
         "location": {
           "type": "object",
           "additionalProperties": false,
           "required": ["address", "postalCode", "city", "countryCode", "country"],
           "properties": {
-            "address": { "type": "string" },
-            "postalCode": { "type": "string" },
-            "city": { "type": "string" },
-            "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
-            "country": { "type": "string" }
+            "address": {
+              "type": "string"
+            },
+            "postalCode": {
+              "type": "string"
+            },
+            "city": {
+              "type": "string"
+            },
+            "countryCode": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            },
+            "country": {
+              "$ref": "#/$defs/localized"
+            }
           }
         },
-        "nationality": { "type": "string" },
-        "driversLicense": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "nationality": {
+          "$ref": "#/$defs/localized"
+        },
+        "driversLicense": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
         "birth": {
           "type": "object",
           "additionalProperties": false,
           "required": ["place", "date"],
           "properties": {
-            "place": { "type": "string" },
-            "date": { "type": "string", "format": "date" }
+            "place": {
+              "type": "string"
+            },
+            "date": {
+              "type": "string",
+              "format": "date"
+            }
           }
         },
         "profiles": {
@@ -73,8 +106,13 @@
             "additionalProperties": false,
             "required": ["network", "url"],
             "properties": {
-              "network": { "type": "string" },
-              "url": { "type": "string", "format": "uri" }
+              "network": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
             }
           }
         }
@@ -88,11 +126,24 @@
         "additionalProperties": false,
         "required": ["position", "name", "location", "startDate", "endDate"],
         "properties": {
-          "position": { "type": "string" },
-          "name": { "type": "string", "description": "Company name" },
-          "location": { "type": "string", "description": "City" },
-          "startDate": { "$ref": "#/$defs/yearMonth" },
-          "endDate": { "$ref": "#/$defs/yearMonthOrNull", "description": "null = present (heden)" }
+          "position": {
+            "$ref": "#/$defs/localized"
+          },
+          "name": {
+            "type": "string",
+            "description": "Company name"
+          },
+          "location": {
+            "$ref": "#/$defs/localized",
+            "description": "City"
+          },
+          "startDate": {
+            "$ref": "#/$defs/yearMonth"
+          },
+          "endDate": {
+            "$ref": "#/$defs/yearMonthOrNull",
+            "description": "null = present (heden)"
+          }
         }
       }
     },
@@ -101,14 +152,27 @@
       "additionalProperties": false,
       "required": ["count", "companies", "andMore", "startYear", "endYear"],
       "properties": {
-        "count": { "type": "integer", "minimum": 1 },
-        "companies": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "companies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
         "andMore": {
           "type": "boolean",
           "description": "true renders an ellipsis after the company list"
         },
-        "startYear": { "$ref": "#/$defs/year" },
-        "endYear": { "$ref": "#/$defs/year" }
+        "startYear": {
+          "$ref": "#/$defs/year"
+        },
+        "endYear": {
+          "$ref": "#/$defs/year"
+        }
       }
     },
     "skills": {
@@ -119,8 +183,17 @@
         "additionalProperties": false,
         "required": ["name", "keywords"],
         "properties": {
-          "name": { "type": "string", "description": "Category label, e.g. Frontend" },
-          "keywords": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+          "name": {
+            "$ref": "#/$defs/localized",
+            "description": "Category label, e.g. Frontend"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
         }
       }
     },
@@ -132,10 +205,18 @@
         "additionalProperties": false,
         "required": ["studyType", "institution", "startDate", "endDate"],
         "properties": {
-          "studyType": { "type": "string" },
-          "institution": { "type": "string" },
-          "startDate": { "$ref": "#/$defs/yearMonth" },
-          "endDate": { "$ref": "#/$defs/yearMonthOrNull" }
+          "studyType": {
+            "$ref": "#/$defs/localized"
+          },
+          "institution": {
+            "type": "string"
+          },
+          "startDate": {
+            "$ref": "#/$defs/yearMonth"
+          },
+          "endDate": {
+            "$ref": "#/$defs/yearMonthOrNull"
+          }
         }
       }
     },
@@ -146,9 +227,15 @@
         "additionalProperties": false,
         "required": ["name", "date", "issuer"],
         "properties": {
-          "name": { "type": "string" },
-          "date": { "$ref": "#/$defs/yearMonth" },
-          "issuer": { "type": "string" }
+          "name": {
+            "$ref": "#/$defs/localized"
+          },
+          "date": {
+            "$ref": "#/$defs/yearMonth"
+          },
+          "issuer": {
+            "$ref": "#/$defs/localized"
+          }
         }
       }
     },
@@ -160,17 +247,58 @@
         "additionalProperties": false,
         "required": ["language", "fluency"],
         "properties": {
-          "language": { "type": "string" },
-          "fluency": { "type": "string" }
+          "language": {
+            "$ref": "#/$defs/localized"
+          },
+          "fluency": {
+            "$ref": "#/$defs/localized"
+          }
         }
       }
     }
   },
   "$defs": {
-    "year": { "type": "string", "pattern": "^[0-9]{4}$" },
-    "yearMonth": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+    "year": {
+      "type": "string",
+      "pattern": "^[0-9]{4}$"
+    },
+    "yearMonth": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
     "yearMonthOrNull": {
-      "oneOf": [{ "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" }, { "type": "null" }]
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "localized": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nl-BE", "en-GB", "fr-BE", "de-BE"],
+      "properties": {
+        "nl-BE": {
+          "type": "string",
+          "minLength": 1
+        },
+        "en-GB": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fr-BE": {
+          "type": "string",
+          "minLength": 1
+        },
+        "de-BE": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   }
 }
