@@ -44,6 +44,27 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
 const EXEC_SCRIPT = /<script(?![^>]*type="application\/ld\+json")[^>]*>[\s\S]*?<\/script>/g;
 const SCRIPT_PRELOAD = /<link[^>]*\bas="script"[^>]*\/?>/g;
+const HIDDEN_DIV = /<div hidden=""><\/div>/g;
+
+/** Delete every match of `pattern`, then keep going until nothing changes.
+ *
+ * A single pass is not enough for a removal: cutting a match out splices its
+ * neighbours together and can form a brand-new one, so `<scr<script></script>ipt>`
+ * would leave a live `<script>` behind. Iterating to a fixpoint closes that.
+ *
+ * @param {string} input
+ * @param {RegExp} pattern global regexp whose matches are removed
+ * @returns {string}
+ */
+function stripUntilStable(input, pattern) {
+  let result = input;
+  let previous = "";
+  while (previous !== result) {
+    previous = result;
+    result = result.replace(pattern, "");
+  }
+  return result;
+}
 
 /**
  * @param {string} dir
@@ -82,12 +103,7 @@ for (const file of walk(OUT)) {
   if (file.endsWith(".html")) {
     let html = readFileSync(file, "utf8");
     const before = html.length;
-    html = inlineStyles(
-      html
-        .replace(EXEC_SCRIPT, "")
-        .replace(SCRIPT_PRELOAD, "")
-        .replace(/<div hidden=""><\/div>/g, ""),
-    );
+    html = inlineStyles([EXEC_SCRIPT, SCRIPT_PRELOAD, HIDDEN_DIV].reduce(stripUntilStable, html));
     const csp = buildCsp([...styleHashes]);
     html = html.replace(
       /<head>/,
