@@ -11,4 +11,5 @@ src/assets/generated/
 public/img/
 .vercel
 .env*
+!.env.example
 .vercel/
