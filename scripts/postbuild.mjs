@@ -34,6 +34,10 @@ const CSP = [
 const EXEC_SCRIPT = /<script(?![^>]*type="application\/ld\+json")[^>]*>[\s\S]*?<\/script>/g;
 const SCRIPT_PRELOAD = /<link[^>]*\bas="script"[^>]*\/?>/g;
 
+/**
+ * @param {string} dir
+ * @returns {Generator<string>}
+ */
 function* walk(dir) {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
@@ -51,7 +55,10 @@ for (const file of walk(OUT)) {
     let html = readFileSync(file, "utf8");
     const before = html.length;
     html = html.replace(EXEC_SCRIPT, "").replace(SCRIPT_PRELOAD, "");
-    html = html.replace(/<head>/, `<head><meta http-equiv="Content-Security-Policy" content="${CSP}"/>`);
+    html = html.replace(
+      /<head>/,
+      `<head><meta http-equiv="Content-Security-Policy" content="${CSP}"/>`,
+    );
 
     if (/<script(?![^>]*application\/ld\+json)/.test(html)) {
       throw new Error(`executable <script> survived stripping in ${file}`);
@@ -74,4 +81,6 @@ if (!index.includes("application/ld+json")) {
   throw new Error("JSON-LD script missing from index.html");
 }
 
-console.log(`postbuild OK: ${htmlCount} HTML files hardened, ${jsCount} JS files removed (${(jsBytes / 1024).toFixed(1)} KiB)`);
+console.log(
+  `postbuild OK: ${htmlCount} HTML files hardened, ${jsCount} JS files removed (${(jsBytes / 1024).toFixed(1)} KiB)`,
+);

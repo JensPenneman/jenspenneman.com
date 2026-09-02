@@ -1,15 +1,8 @@
 import type { MetadataRoute } from "next";
-import cv from "./cv.json";
+import { siteUrl } from "@/lib/seo/siteUrl";
 
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url: cv.basics.url,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 1,
-    },
-  ];
+  return [{ url: siteUrl.href, lastModified: new Date(), changeFrequency: "monthly", priority: 1 }];
 }
