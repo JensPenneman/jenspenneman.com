@@ -23,6 +23,8 @@
 }
 
 :root {
+  color-scheme: light;
+  --bg: #ffffff;
   --ink: #000000;
   --gray: #7f7f7f;
   --dgray: #595959;
@@ -70,12 +72,35 @@
   }
 }
 
+/* Dark mode follows the system on screen only. Print is excluded by the
+   `screen` media type: a printed CV is always light. Contrast on the dark
+   ground stays >= 7:1 (AAA). */
+@media screen and (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #121316;
+    --ink: #f2f2f2;
+    --gray: #ababab;
+    --dgray: #b8b8b8;
+    --intro-ink: #dcdcdc;
+  }
+  @supports (color: lch(50% 0 0)) {
+    :root {
+      --bg: lch(5.89% 2.05 278.2);
+      --ink: lch(95.49% 0 0);
+      --gray: lch(69.98% 0 0);
+      --dgray: lch(74.78% 0 0);
+      --intro-ink: lch(87.76% 0 0);
+    }
+  }
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: #fff;
+  background: var(--bg);
   font-family: "Helvetica Neue", HelveticaNeue, Helvetica, Arial, sans-serif;
 }
 
@@ -366,6 +391,9 @@ h3,
 }
 
 @media print {
+  :root {
+    color-scheme: light;
+  }
   body {
     background: #fff;
   }
