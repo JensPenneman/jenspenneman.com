@@ -1,5 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["app/**/*.{ts,tsx}", "scripts/*.mjs", "tests/**/*.{ts,tsx}", "*.config.{ts,mjs}"],
-  "project": ["src/**", "app/**", "scripts/**", "tests/**"]
+  "project": ["src/**", "app/**", "scripts/**", "tests/**"],
+  "ignoreBinaries": ["mkcert", "openssl"]
 }
