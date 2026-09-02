@@ -79,8 +79,16 @@ npm run dev          # Next dev server
 npm run check        # biome + tsc + knip + vitest  (what CI runs first)
 npm run test:e2e     # build, then Playwright (desktop + mobile)
 npm run build        # static export to out/ + postbuild hardening
-npm run preview      # serve out/ (node scripts/serve.mjs [port])
+npm run preview      # serve out/ over HTTPS (node scripts/serve.mjs [port] [--http])
 ```
+
+The preview is **HTTPS** with a self-signed certificate (`.certs/`, generated
+on first run; install [mkcert](https://github.com/FiloSottile/mkcert) to get one
+your OS trusts). Reason: the production CSP carries `upgrade-insecure-requests`
+and WebKit applies it to loopback too ([bug 250776](https://bugs.webkit.org/show_bug.cgi?id=250776)),
+so over plain http Safari upgrades every asset to https and the page loses its
+CSS. Serving https locally keeps the policy identical to production. E2E runs
+against the same server in Chromium, WebKit and mobile Chrome.
 
 - **Biome** formats and lints TS/TSX/JS/JSON/CSS (import sorting on save via
   the recommended VS Code extension).
