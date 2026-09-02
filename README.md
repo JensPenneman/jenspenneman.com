@@ -83,6 +83,15 @@ require a GDPR consent banner. Options when wanted: Vercel Web Analytics
 (cookieless) or self-hosted Plausible/Umami; each needs `script-src` opened in
 `vercel.json` and `scripts/postbuild.mjs`.
 
+## Performance
+
+First load of a locale page is **two requests, ~7 KB brotli**: the HTML (with
+the stylesheet inlined by `scripts/postbuild.mjs` and allowed through a CSP
+`sha256` hash — never `unsafe-inline`) plus a 2 KB AVIF portrait; no
+JavaScript, no web fonts. `npm run sizes` prints the per-asset report and fails
+above a 12 KB critical-path budget (CI runs it). PNG icons are palette-quantized
+by the image pipeline. Lighthouse: 100 / 100 / 100 / 92 on every locale.
+
 ## Security
 
 The export ships **zero executable JavaScript**: `scripts/postbuild.mjs` strips
@@ -102,6 +111,7 @@ npm run check        # biome + tsc + knip + vitest  (what CI runs first)
 npm run test:e2e     # build, then Playwright (Chromium, WebKit, mobile)
 npm run test:visual  # screenshot baselines (macOS; `test:visual:update` to re-record)
 npm run lighthouse   # serve + audit every locale; fails below the score floors
+npm run sizes        # first-load size report + brotli budget
 npm run build        # static export to out/ + postbuild hardening
 npm run preview      # serve out/ over HTTPS (node scripts/serve.mjs [port] [--http])
 ```

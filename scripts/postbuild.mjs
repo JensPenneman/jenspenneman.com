@@ -17,20 +17,26 @@
  * When interactivity is ever added: delete this script from the build chain
  * and move to a hash- or nonce-based CSP on a server runtime.
  */
+import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const OUT = fileURLToPath(new URL("../out", import.meta.url));
 
-const CSP = [
-  "default-src 'none'",
-  "img-src 'self'",
-  "style-src 'self'",
-  "manifest-src 'self'",
-  "base-uri 'none'",
-  "form-action 'none'",
-].join("; ");
+/** @param {string[]} styleHashes sha256 sources for inlined stylesheets */
+const buildCsp = (styleHashes) =>
+  [
+    "default-src 'none'",
+    "img-src 'self'",
+    `style-src 'self'${styleHashes.map((h) => ` '${h}'`).join("")}`,
+    "manifest-src 'self'",
+    "base-uri 'none'",
+    "form-action 'none'",
+  ].join("; ");
+
+const STYLESHEET = /<link rel="stylesheet" href="(\/_next\/static\/[^"]+\.css)"[^>]*>/g;
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
 const EXEC_SCRIPT = /<script(?![^>]*type="application\/ld\+json")[^>]*>[\s\S]*?<\/script>/g;
 const SCRIPT_PRELOAD = /<link[^>]*\bas="script"[^>]*\/?>/g;
@@ -50,18 +56,38 @@ function* walk(dir) {
 let htmlCount = 0;
 let jsBytes = 0;
 let jsCount = 0;
+/** @type {Set<string>} */
+const styleHashes = new Set();
+/** @type {Map<string, string>} */
+const cssCache = new Map();
+
+/** Inline every linked stylesheet (one fewer render-blocking round trip) and
+ * record its CSP hash so `style-src` can stay free of 'unsafe-inline'.
+ * @param {string} html */
+function inlineStyles(html) {
+  return html.replace(STYLESHEET, (_, href) => {
+    const file = join(OUT, href);
+    const css = cssCache.get(file) ?? readFileSync(file, "utf8").trim();
+    cssCache.set(file, css);
+    styleHashes.add(`sha256-${createHash("sha256").update(css).digest("base64")}`);
+    return `<style>${css}</style>`;
+  });
+}
 
 for (const file of walk(OUT)) {
   if (file.endsWith(".html")) {
     let html = readFileSync(file, "utf8");
     const before = html.length;
-    html = html
-      .replace(EXEC_SCRIPT, "")
-      .replace(SCRIPT_PRELOAD, "")
-      .replace(/<div hidden=""><\/div>/g, "");
+    html = inlineStyles(
+      html
+        .replace(EXEC_SCRIPT, "")
+        .replace(SCRIPT_PRELOAD, "")
+        .replace(/<div hidden=""><\/div>/g, ""),
+    );
+    const csp = buildCsp([...styleHashes]);
     html = html.replace(
       /<head>/,
-      `<head><meta http-equiv="Content-Security-Policy" content="${CSP}"/>`,
+      `<head><meta http-equiv="Content-Security-Policy" content="${csp}"/>`,
     );
 
     if (/<script(?![^>]*application\/ld\+json)/.test(html)) {
@@ -95,10 +121,31 @@ const list = LOCALES.map(
 ).join("");
 writeFileSync(
   join(OUT, "index.html"),
-  `<!doctype html><html lang="${DEFAULT_LOCALE}"><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=/${DEFAULT_LOCALE}"><title>CV</title>${links}<link rel="alternate" hreflang="x-default" href="/${DEFAULT_LOCALE}"></head><body><ul>${list}</ul></body></html>\n`,
+  `<!doctype html><html lang="${DEFAULT_LOCALE}"><head><meta http-equiv="Content-Security-Policy" content="${buildCsp([])}"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=/${DEFAULT_LOCALE}"><title>CV</title>${links}<link rel="alternate" hreflang="x-default" href="/${DEFAULT_LOCALE}"></head><body><ul>${list}</ul></body></html>\n`,
 );
 console.log(`wrote root fallback index.html -> /${DEFAULT_LOCALE}`);
 
+for (const file of cssCache.keys()) unlinkSync(file);
+
+/* The HTTP header in vercel.json must carry the same hashes as the meta tag
+ * (browsers intersect multiple policies). Sync it and remind to commit. */
+const vercelPath = join(ROOT, "vercel.json");
+const vercel = JSON.parse(readFileSync(vercelPath, "utf8"));
+const headerCsp = `${buildCsp([...styleHashes])}; frame-ancestors 'none'; upgrade-insecure-requests`;
+let vercelChanged = false;
+for (const rule of vercel.headers ?? []) {
+  for (const h of rule.headers ?? []) {
+    if (h.key === "Content-Security-Policy" && h.value !== headerCsp) {
+      h.value = headerCsp;
+      vercelChanged = true;
+    }
+  }
+}
+if (vercelChanged) {
+  writeFileSync(vercelPath, `${JSON.stringify(vercel, null, 2)}\n`);
+  console.warn("vercel.json: Content-Security-Policy updated with the new style hash - commit it");
+}
+
 console.log(
-  `postbuild OK: ${htmlCount} HTML files hardened, ${jsCount} JS files removed (${(jsBytes / 1024).toFixed(1)} KiB)`,
+  `postbuild OK: ${htmlCount} HTML files hardened, ${cssCache.size} stylesheet(s) inlined, ${jsCount} JS files removed (${(jsBytes / 1024).toFixed(1)} KiB)`,
 );

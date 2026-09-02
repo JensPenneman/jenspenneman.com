@@ -19,6 +19,26 @@ test.describe("security invariants of the export", () => {
     expect(first.content).toContain("default-src 'none'");
     expect(first.content).toContain("manifest-src 'self'");
     expect(first.content).not.toContain("unsafe-inline");
+    // the stylesheet is inlined and allowed by hash, never by 'unsafe-inline'
+    expect(first.content).toMatch(/style-src 'self' 'sha256-[A-Za-z0-9+/=]+'/);
+  });
+
+  test("inlines the stylesheet: no CSS request, header and meta CSP agree on the hash", async ({
+    page,
+  }) => {
+    const res = await page.goto("/nl-BE");
+    await expect(page.locator('link[rel="stylesheet"]')).toHaveCount(0);
+    await expect(page.locator("head style")).toHaveCount(1);
+    const metaHash = await page.evaluate(
+      () =>
+        document.head.firstElementChild?.getAttribute("content")?.match(/'sha256-[^']+'/)?.[0] ??
+        "",
+    );
+    expect(metaHash).not.toBe("");
+    expect(res?.headers()["content-security-policy"]).toContain(metaHash);
+    // and the inline stylesheet actually applied under that policy
+    const display = await page.locator(".stage").evaluate((el) => getComputedStyle(el).display);
+    expect(display).toBe("flex");
   });
 
   test("loads with no console errors, CSP violations or failed requests", async ({ page }) => {
