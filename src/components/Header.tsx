@@ -1,5 +1,5 @@
-import photo from "@/assets/photo.jpg";
 import type { CvData } from "@/lib/cv/data";
+import { photoSources } from "@/lib/cv/photoSources";
 import { addressLine } from "@/lib/format/addressLine";
 import { phoneDisplay } from "@/lib/format/phoneDisplay";
 import { LABELS } from "@/lib/labels";
@@ -12,23 +12,28 @@ export function Header({ basics }: Props) {
   return (
     <header className="row head">
       <div className="aside">
-        {/* biome-ignore lint/performance/noImgElement: static export has no image optimizer; the asset is already sized and content-hashed */}
-        <img
-          className="photo"
-          src={photo.src}
-          alt={`${LABELS.photoAlt} ${basics.name}`}
-          width={708}
-          height={708}
-        />
+        <picture>
+          <source type="image/avif" srcSet={photoSources.avif} />
+          <source type="image/webp" srcSet={photoSources.webp} />
+          <img
+            className="photo"
+            src={photoSources.jpg.src}
+            srcSet={photoSources.jpg.srcSet}
+            width={photoSources.jpg.width}
+            height={photoSources.jpg.height}
+            alt={`${LABELS.photoAlt} ${basics.name}`}
+            fetchPriority="high"
+          />
+        </picture>
       </div>
       <div className="content">
-        <p className="contact">
+        <address className="contact">
           {addressLine(basics.location)}
           <Separator />
           <a href={`mailto:${basics.email}`}>{basics.email}</a>
           <Separator />
           <a href={`tel:${basics.phone}`}>{phoneDisplay(basics.phone)}</a>
-        </p>
+        </address>
         <h1>
           {basics.name}, {basics.label}
         </h1>

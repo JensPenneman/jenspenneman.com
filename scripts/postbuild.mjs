@@ -55,7 +55,10 @@ for (const file of walk(OUT)) {
   if (file.endsWith(".html")) {
     let html = readFileSync(file, "utf8");
     const before = html.length;
-    html = html.replace(EXEC_SCRIPT, "").replace(SCRIPT_PRELOAD, "");
+    html = html
+      .replace(EXEC_SCRIPT, "")
+      .replace(SCRIPT_PRELOAD, "")
+      .replace(/<div hidden=""><\/div>/g, "");
     html = html.replace(
       /<head>/,
       `<head><meta http-equiv="Content-Security-Policy" content="${CSP}"/>`,

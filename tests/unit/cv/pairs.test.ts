@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { channels } from "@/lib/cv/channels";
+import { channelLinks } from "@/lib/cv/channelLinks";
 import { currentEmployer } from "@/lib/cv/currentEmployer";
 import { cvData } from "@/lib/cv/data";
 import { languagePairs } from "@/lib/cv/languagePairs";
@@ -31,10 +31,12 @@ describe("view-model derivations", () => {
     ]);
   });
 
-  it("channels lists the website first, then the profiles", () => {
-    const urls = channels(cvData.basics);
-    expect(urls[0]).toBe(cvData.basics.url);
-    expect(urls).toHaveLength(1 + cvData.basics.profiles.length);
+  it("channelLinks lists the website first, then the profiles with their network as label", () => {
+    const links = channelLinks(cvData.basics, "Website");
+    expect(links[0]).toEqual({ url: cvData.basics.url, label: "Website" });
+    expect(links.slice(1).map((l) => l.label)).toEqual(
+      cvData.basics.profiles.map((p) => p.network),
+    );
   });
 
   it("currentEmployer is the open-ended position", () => {

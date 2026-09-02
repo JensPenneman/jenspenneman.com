@@ -5,13 +5,13 @@ import { Header } from "@/components/Header";
 import { HolidayJobs } from "@/components/HolidayJobs";
 import { Pairs } from "@/components/Pairs";
 import { Section } from "@/components/Section";
-import { channels } from "@/lib/cv/channels";
+import { channelLinks } from "@/lib/cv/channelLinks";
 import { cvData } from "@/lib/cv/data";
-import { educationMeta } from "@/lib/cv/educationMeta";
+import { educationOrg } from "@/lib/cv/educationOrg";
 import { languagePairs } from "@/lib/cv/languagePairs";
 import { personaliaPairs } from "@/lib/cv/personaliaPairs";
 import { skillPairs } from "@/lib/cv/skillPairs";
-import { workMeta } from "@/lib/cv/workMeta";
+import { workOrg } from "@/lib/cv/workOrg";
 import { LABELS } from "@/lib/labels";
 
 export default function Page() {
@@ -28,7 +28,13 @@ export default function Page() {
 
           <Section id="werkervaring" heading={LABELS.work} contentClass="content jobs">
             {work.map((w) => (
-              <Entry key={`${w.name}-${w.startDate}`} title={w.position} meta={workMeta(w)} />
+              <Entry
+                key={`${w.name}-${w.startDate}`}
+                title={w.position}
+                org={workOrg(w)}
+                start={w.startDate}
+                end={w.endDate}
+              />
             ))}
             <HolidayJobs jobs={holidayJobs} />
           </Section>
@@ -42,7 +48,9 @@ export default function Page() {
               <Entry
                 key={`${e.institution}-${e.startDate}`}
                 title={e.studyType}
-                meta={educationMeta(e)}
+                org={educationOrg(e)}
+                start={e.startDate}
+                end={e.endDate}
               />
             ))}
           </Section>
@@ -56,7 +64,7 @@ export default function Page() {
           </Section>
 
           <Section id="kanalen" heading={LABELS.channels}>
-            <ChannelLinks urls={channels(basics)} />
+            <ChannelLinks links={channelLinks(basics, LABELS.website)} />
           </Section>
         </div>
       </article>

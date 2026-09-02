@@ -14,4 +14,5 @@ export const LABELS = {
   languages: "Talen",
   channels: "Andere informatiekanalen",
   photoAlt: "Portretfoto van",
+  website: "Website",
 } as const;
