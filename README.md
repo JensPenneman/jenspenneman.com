@@ -10,7 +10,7 @@ app/            Next App Router: routes + metadata file conventions only
   global-not-found.tsx  404 in the CV design with a link per language
   sitemap.ts robots.ts manifest.ts icon0.png icon1.svg apple-icon.png
 src/
-  assets/       photo.jpg
+  assets/       photo.jpg + the build-time OG card fonts
   components/   one component per file (Header, Section, Pairs, Entry, ...)
   content/      cv.json (the data model) + cv.schema.json
   lib/cv/       typed data access + view-model derivations (one function per file)
@@ -46,7 +46,7 @@ all four locales) validated by
 autocomplete + validation; the unit tests validate it too). The UI derives every
 display string (`src/lib/format`, `src/lib/cv`): Dutch month names via `Intl`,
 "bij X te Y" composition, list joining, phone grouping. Labels/headings are
-presentation and live in `src/lib/labels.ts`.
+presentation and live in `src/lib/i18n/labels/<locale>.ts`.
 
 ## Design
 
@@ -91,8 +91,9 @@ the stylesheet inlined by `scripts/postbuild.mjs` and allowed through a CSP
 JavaScript, no web fonts. `npm run sizes` prints the per-asset report and fails
 above a 12 KB critical-path budget (CI runs it). PNG icons are palette-quantized
 by the image pipeline; the AVIF portrait is preloaded (type-gated) as the LCP
-candidate; the OG cards are re-encoded losslessly (175 -> 58 KB). Lighthouse:
-100 / 100 / 100 / 100 on every locale.
+candidate; the OG cards are re-encoded losslessly (175 -> 58 KB). Measured Lighthouse
+scores: 100 / 100 / 100 / 100 on every locale; the CI gate (`npm run
+lighthouse`) enforces floors of 95 / 100 / 100 / 100 on the median of three runs.
 
 ## Security
 
