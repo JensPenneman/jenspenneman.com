@@ -1,4 +1,4 @@
-import cv from "@/content/cv.json";
+import cv from "@/content/cv.json" with { type: "json" };
 
 /** The CV data model (validated against src/content/cv.schema.json). */
 export const cvData = cv;

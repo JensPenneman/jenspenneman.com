@@ -1,7 +1,7 @@
 import Ajv2020 from "ajv/dist/2020";
 import addFormats from "ajv-formats";
 import { describe, expect, it } from "vitest";
-import schema from "@/content/cv.schema.json";
+import schema from "@/content/cv.schema.json" with { type: "json" };
 import { cvData } from "@/lib/cv/data";
 import { phoneDisplay } from "@/lib/format/phoneDisplay";
 

@@ -1,4 +1,4 @@
-import manifest from "@/assets/generated/photo.json";
+import manifest from "@/assets/generated/photo.json" with { type: "json" };
 
 const src = (format: "avif" | "webp" | "jpg", size: "160" | "320") => manifest[format][size];
 
