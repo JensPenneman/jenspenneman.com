@@ -14,6 +14,6 @@ Jens's CV reconstructed fully in HTML/CSS as a static Next.js app (`output: "exp
 - Fonts: system stack ("Helvetica Neue", Helvetica, Arial) — nothing served.
 
 ```sh
-pnpm build      # static export to out/
-pnpm preview    # serve out/ (pass a port: pnpm preview 8123)
+npm run build      # static export to out/
+npm run preview    # serve out/ (pass a port: npm run preview -- 8123)
 ```
