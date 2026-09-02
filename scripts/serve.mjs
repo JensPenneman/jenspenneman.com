@@ -98,6 +98,20 @@ const COMPRESSIBLE = new Set([
   ".svg",
 ]);
 
+/** Extensionless metadata routes (e.g. /nl-BE/opengraph-image): sniff the type.
+ * @param {Buffer} body */
+function sniff(body) {
+  if (body.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])))
+    return "image/png";
+  if (body[0] === 0xff && body[1] === 0xd8) return "image/jpeg";
+  if (
+    body.subarray(0, 4).toString("latin1") === "RIFF" &&
+    body.subarray(8, 12).toString("latin1") === "WEBP"
+  )
+    return "image/webp";
+  return "application/octet-stream";
+}
+
 /** @param {string} pathname */
 function resolve(pathname) {
   const clean = normalize(pathname).replace(/^(\.\.[/\\])+/, "");
@@ -150,7 +164,7 @@ const handler = (req, res) => {
 
   /** @type {Record<string, string>} */
   const headers = {
-    "Content-Type": MIME[ext] ?? "application/octet-stream",
+    "Content-Type": MIME[ext] ?? sniff(body),
     "Cache-Control": "public, max-age=0, must-revalidate",
     ETag: etag,
     Vary: "Accept-Encoding",
