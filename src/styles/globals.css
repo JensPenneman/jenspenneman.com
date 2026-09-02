@@ -26,6 +26,7 @@
   color-scheme: light;
   --bg: #ffffff;
   --line-w: 0.5;
+  --fine: 8;
   --ink: #000000;
   --gray: #7f7f7f;
   --dgray: #595959;
@@ -102,7 +103,9 @@ html {
 
 body {
   background: var(--bg);
-  font-family: "Helvetica Neue", HelveticaNeue, Helvetica, Arial, sans-serif;
+  /* Screen: each platform's modern system grotesque (SF, Segoe UI, Roboto);
+     print switches to the master's Helvetica Neue stack (see @media print). */
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 /* ---------------- screen: fluid page, no paper ----------------
@@ -195,7 +198,8 @@ h2 {
 }
 
 .contact {
-  font-size: calc(var(--pt) * 6.96);
+  font-size: calc(var(--pt) * var(--fine));
+  font-style: normal; /* <address> is italic by default */
   color: var(--dgray);
 }
 
@@ -205,6 +209,7 @@ h1 {
   font-weight: 700;
   line-height: 1.15;
   color: var(--ink);
+  text-wrap: balance;
 }
 
 .intro {
@@ -214,6 +219,7 @@ h1 {
   line-height: 1.55;
   max-width: 70ch;
   color: var(--intro-ink);
+  text-wrap: pretty;
 }
 
 /* ---------------- leader rows (label ..... value) ---------------- */
@@ -305,8 +311,20 @@ h3,
   justify-content: start;
   row-gap: calc(var(--pt) * 0.65);
   list-style: none;
-  font-size: calc(var(--pt) * 6.96);
+  font-size: calc(var(--pt) * var(--fine));
   color: var(--dgray);
+}
+
+/* ---------------- 404 ---------------- */
+
+.back {
+  margin-top: calc(var(--pt) * 12);
+  font-size: calc(var(--pt) * 12);
+}
+.back a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 /* ---------------- tablet: 40em-64em ---------------- */
@@ -455,6 +473,18 @@ h3,
 @media print {
   :root {
     color-scheme: light;
+    --fine: 6.96;
+  }
+  body {
+    font-family: "Helvetica Neue", HelveticaNeue, Helvetica, Arial, sans-serif;
+  }
+  /* labelled links print as their URL, exactly like the master */
+  .links a {
+    font-size: 0;
+  }
+  .links a::after {
+    content: attr(data-url);
+    font-size: calc(var(--pt) * var(--fine));
   }
   body {
     background: #fff;

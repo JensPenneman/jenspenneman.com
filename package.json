@@ -16,7 +16,9 @@
     "test:e2e": "npm run build && playwright test",
     "knip": "knip",
     "check": "npm run lint && npm run typecheck && npm run knip && npm run test",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "prebuild": "node scripts/images.mjs",
+    "images": "node scripts/images.mjs"
   },
   "dependencies": {
     "next": "^16.3.4",
@@ -41,6 +43,7 @@
     "jsdom": "^30.0.1",
     "knip": "^6.34.0",
     "lefthook": "^2.1.12",
+    "sharp": "^0.35.4",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
   },
