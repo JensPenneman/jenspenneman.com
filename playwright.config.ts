@@ -5,7 +5,7 @@ const BASE_URL = `https://127.0.0.1:${PORT}`;
 const isCI = Boolean(process.env["CI"]);
 
 export default defineConfig({
-  testDir: "tests/e2e",
+  testDir: "tests",
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
@@ -20,9 +20,12 @@ export default defineConfig({
     reuseExistingServer: !isCI,
     timeout: 30_000,
   },
+  expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01 } },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
-    { name: "webkit", use: { ...devices["Desktop Safari"] } },
-    { name: "mobile", use: { ...devices["Pixel 7"] } },
+    { name: "desktop", testDir: "tests/e2e", use: { ...devices["Desktop Chrome"] } },
+    { name: "webkit", testDir: "tests/e2e", use: { ...devices["Desktop Safari"] } },
+    { name: "mobile", testDir: "tests/e2e", use: { ...devices["Pixel 7"] } },
+    /* macOS only (system fonts): `npm run test:visual`, CI visual job */
+    { name: "visual", testDir: "tests/visual", use: { ...devices["Desktop Chrome"] } },
   ],
 });

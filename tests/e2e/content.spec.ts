@@ -81,4 +81,19 @@ test.describe("content", () => {
     );
     await expect(page.locator('a[href="/en-GB"]')).toBeVisible();
   });
+
+  for (const locale of LOCALES) {
+    test(`serves the ${locale} Open Graph card as a PNG`, async ({ page, request }) => {
+      await page.goto(`/${locale}`);
+      const og = await page.locator('meta[property="og:image"]').getAttribute("content");
+      expect(og).toContain(`/${locale}/opengraph-image`);
+      const res = await request.get(
+        new URL(og ?? "", "https://127.0.0.1").pathname +
+          new URL(og ?? "", "https://127.0.0.1").search,
+      );
+      expect(res.status()).toBe(200);
+      expect(res.headers()["content-type"]).toBe("image/png");
+      expect((await res.body()).length).toBeGreaterThan(20_000);
+    });
+  }
 });

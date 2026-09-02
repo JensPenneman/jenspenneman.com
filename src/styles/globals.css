@@ -411,14 +411,19 @@ nav.lang li {
     margin-top: 0;
     margin-bottom: calc(var(--pt) * 14);
   }
-  /* one contact item per line instead of wrapping around the separators */
+  /* one contact item per line instead of wrapping around the separators;
+     stacked links are standalone targets, so they get AAA 44px hit areas */
   .contact {
     display: flex;
     flex-direction: column;
-    gap: calc(var(--pt) * 3);
   }
   .contact .sep {
     display: none;
+  }
+  .contact a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
   h1 {
     margin-top: calc(var(--pt) * 10);
