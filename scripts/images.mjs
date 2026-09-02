@@ -3,10 +3,10 @@
  * 320px (2x) squares as AVIF, WebP and JPEG into public/img/ with a content
  * hash in the filename (immutable caching, no bundler involvement), and write
  * the resulting URLs to src/assets/generated/photo.json for the <picture>.
- * Also re-encodes the PNG icons (apple-touch-icon, manifest icons) as
- * palette PNGs, which is 3-4x smaller for a portrait at these sizes. */
+ * (The committed PNG icons are produced by scripts/icons.mjs, on purpose not
+ * at build time: libvips output differs across platforms byte for byte.) */
 import { createHash } from "node:crypto";
-import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -42,18 +42,6 @@ for (const size of SIZES) {
   }
 }
 writeFileSync(join(MANIFEST_DIR, "photo.json"), `${JSON.stringify(manifest, null, 2)}\n`);
-
-const ICONS = [
-  { size: 180, path: join(ROOT, "app/apple-icon.png") },
-  { size: 192, path: join(ROOT, "public/icons/icon-192.png") },
-  { size: 512, path: join(ROOT, "public/icons/icon-512.png") },
-];
-for (const { size, path } of ICONS) {
-  await sharp(SRC)
-    .resize(size, size, { fit: "cover" })
-    .png({ palette: true, quality: 80, compressionLevel: 9, effort: 10 })
-    .toFile(path);
-}
 console.log(
-  `images OK: ${readdirSync(PUBLIC_DIR).length} variants in public/img/, manifest written`,
+  `images OK: ${SIZES.length * FORMATS.length} variants in public/img/, manifest written`,
 );

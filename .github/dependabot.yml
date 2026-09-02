@@ -4,10 +4,21 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Brussels
+    commit-message:
+      prefix: "chore(deps)"
     groups:
-      all:
-        patterns: ["*"]
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+    open-pull-requests-limit: 5
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Brussels
+    commit-message:
+      prefix: "chore(ci)"
