@@ -34,6 +34,18 @@ test.describe("content", () => {
     });
   }
 
+  test("preloads the AVIF portrait with a type so other browsers skip it", async ({ page }) => {
+    await page.goto("/nl-BE");
+    const preload = page.locator('link[rel="preload"][as="image"]');
+    await expect(preload).toHaveCount(1);
+    await expect(preload).toHaveAttribute("type", "image/avif");
+    await expect(preload).toHaveAttribute(
+      "imagesrcset",
+      /photo-160\.[^ ]+\.avif 1x, \/img\/photo-320\.[^ ]+\.avif 2x/,
+    );
+    await expect(preload).toHaveAttribute("fetchpriority", "high");
+  });
+
   test("exposes every section as a named region", async ({ page }) => {
     await page.goto("/nl-BE");
     const sections = page.locator("section[aria-labelledby]");

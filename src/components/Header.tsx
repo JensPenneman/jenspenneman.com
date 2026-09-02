@@ -1,3 +1,4 @@
+import { preload } from "react-dom";
 import type { CvData } from "@/lib/cv/data";
 import { photoSources } from "@/lib/cv/photoSources";
 import { addressLine } from "@/lib/format/addressLine";
@@ -12,6 +13,14 @@ type Props = { basics: CvData["basics"]; locale: Locale; labels: Labels };
 /** Photo, contact line, name + title, and the intro paragraph. */
 export function Header({ basics, locale, labels }: Props) {
   const location = { ...basics.location, country: t(basics.location.country, locale) };
+  /* The portrait is the LCP candidate: preload the AVIF (browsers without
+   * AVIF ignore a preload whose type they don't support). */
+  preload(photoSources.avif160, {
+    as: "image",
+    type: "image/avif",
+    imageSrcSet: photoSources.avif,
+    fetchPriority: "high",
+  });
   return (
     <header className="row head">
       <div className="aside">
