@@ -9,9 +9,11 @@ import { siteUrl } from "./siteUrl";
 /** Search-engine verification tokens, supplied through the environment. */
 function verification(): Metadata["verification"] {
   const google = process.env["GOOGLE_SITE_VERIFICATION"];
+  const yandex = process.env["YANDEX_VERIFICATION"];
   const bing = process.env["BING_SITE_VERIFICATION"];
   return {
     ...(google ? { google } : {}),
+    ...(yandex ? { yandex } : {}),
     ...(bing ? { other: { "msvalidate.01": bing } } : {}),
   };
 }

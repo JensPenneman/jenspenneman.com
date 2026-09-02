@@ -77,8 +77,8 @@ Twitter card, icons, `manifest.webmanifest`, `sitemap.xml`, `robots.txt`,
 JSON-LD `ProfilePage`/`Person`. Search engines: `npm run indexnow` pings
 Bing/Yandex/Seznam/Naver (IndexNow; key file in public/) after a production
 deploy; Google only takes the sitemap via Search Console. Verification tokens
-go in the Vercel environment as `GOOGLE_SITE_VERIFICATION` and
-`BING_SITE_VERIFICATION` (rendered as meta tags when set).
+go in the Vercel environment as `GOOGLE_SITE_VERIFICATION`,
+`BING_SITE_VERIFICATION` and `YANDEX_VERIFICATION` (rendered as meta tags when set).
 
 **Analytics** (both cookieless, so no consent banner):
 - Vercel Web Analytics (`@vercel/analytics`), rendered only on Vercel.
@@ -95,7 +95,8 @@ Pages render per request (the CSP nonce is unique per response) on Vercel's
 Node runtime; static assets are content-hashed and immutable. The portrait is
 AVIF/WebP/JPEG at 1x/2x with a type-gated preload; PNG icons are
 palette-quantized. `npm run lighthouse` audits every locale (median of three
-runs) and fails below 95 / 100 / 100 / 100.
+runs) and fails below 90 / 100 / 100 / 100 (production measures 100; shared CI
+runners score 93-97 with the Next runtime).
 
 ## Security
 

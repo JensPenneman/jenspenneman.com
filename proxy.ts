@@ -59,8 +59,9 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      /* everything except static assets and metadata files, and not router prefetches */
-      source: "/((?!_next/|pulse/|img/|icons/|.well-known/|.*opengraph-image|.*..*).*)",
+      /* everything except Next internals, the PostHog proxy, static files
+       * (anything with a dot) and the OG images; not router prefetches */
+      source: "/((?!_next/|pulse/|img/|icons/|\\.well-known/|.*opengraph-image|.*\\..*).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },
