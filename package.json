@@ -17,7 +17,7 @@
     "test:e2e": "npm run build && playwright test --project=desktop --project=webkit --project=mobile",
     "knip": "knip",
     "check": "npm run lint && npm run typecheck && npm run knip && npm run test",
-    "prepare": "lefthook install && node scripts/images.mjs",
+    "prepare": "node scripts/images.mjs && node scripts/hooks.mjs",
     "prebuild": "node scripts/clean.mjs && node scripts/images.mjs",
     "images": "node scripts/images.mjs",
     "test:visual": "playwright test --project=visual",
