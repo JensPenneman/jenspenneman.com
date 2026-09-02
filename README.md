@@ -28,7 +28,35 @@ data.
   full semantic/landmark structure (`dl`, `section[aria-labelledby]`,
   h1-h3), JSON-LD Person/ProfilePage for reader modes and crawlers.
 
+## SEO
+
+Full metadata from the data model: title/description/keywords, canonical,
+robots (+googleBot), Open Graph `profile` + generated 1200x630
+[app/opengraph-image.png](app/opengraph-image.png), Twitter card, icons
+(`icon.svg`, `apple-icon.png`), `manifest.webmanifest`, `sitemap.xml`,
+`robots.txt` (all Next file conventions, statically exported), and JSON-LD
+`ProfilePage`/`Person` (image, sameAs, worksFor, alumniOf, knowsAbout).
+After deploying: verify the domain in Google Search Console and submit
+`/sitemap.xml`; add the verification token to `metadata.verification.google`.
+
+**Analytics**: deliberately no tracking script — the CSP ships script-free and
+GA4 would require a GDPR consent banner. Options when wanted: Vercel Web
+Analytics (cookieless, one toggle), or self-hosted open-source
+Plausible/Umami. Any of these needs `script-src` opened in the CSP
+(vercel.json + scripts/postbuild.mjs).
+
+## Security
+
+This page ships **zero executable JavaScript**: `scripts/postbuild.mjs` strips
+the Next runtime from the export (the JSON-LD `<script>` is data, never
+executed), injects a strict CSP `<meta>` (`default-src 'none'`), and fails the
+build if a script would survive. A **nonce is impossible on a static site**
+(it must be unique per HTTP response) — shipping no scripts at all is strictly
+stronger. Header-only directives (`frame-ancestors`, HSTS, COOP/COEP/CORP,
+Permissions-Policy, nosniff) live in [vercel.json](vercel.json) and activate
+on deploy; `/.well-known/security.txt` (RFC 9116) is served from public/.
+
 ```sh
-npm run build      # static export to out/
+npm run build      # static export to out/ + postbuild hardening
 npm run preview    # serve out/ (pass a port: npm run preview -- 8123)
 ```
