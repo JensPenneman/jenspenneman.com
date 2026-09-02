@@ -9,6 +9,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
+  /* Playwright defaults to half the cores; the CI runners can take all 4. */
+  ...(isCI ? { workers: 4 } : {}),
   reporter: isCI ? [["github"], ["html", { open: "never" }]] : [["list"]],
   /* The preview server is HTTPS with a self-signed certificate (see
    * scripts/serve.mjs for why plain http breaks WebKit). */
