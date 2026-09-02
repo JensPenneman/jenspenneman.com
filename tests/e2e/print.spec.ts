@@ -8,8 +8,8 @@ test.describe("print", () => {
     expect(width).toBeCloseTo(793.76, 0); // 595.32pt
   });
 
-  test("never prints in dark mode", async ({ page }) => {
-    await page.emulateMedia({ media: "print", colorScheme: "dark" });
+  test("never prints in dark or high-contrast mode", async ({ page }) => {
+    await page.emulateMedia({ media: "print", colorScheme: "dark", contrast: "more" });
     await page.goto("/");
     // Computed colors serialize as authored (lch(...)); normalize via a canvas pixel.
     const colors = await page.evaluate(() => {

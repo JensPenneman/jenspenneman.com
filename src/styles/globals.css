@@ -25,6 +25,7 @@
 :root {
   color-scheme: light;
   --bg: #ffffff;
+  --line-w: 0.5;
   --ink: #000000;
   --gray: #7f7f7f;
   --dgray: #595959;
@@ -255,7 +256,7 @@ h1 {
   flex: 1;
   min-width: calc(var(--pt) * 15);
   margin: 0 calc(var(--pt) * 7);
-  border-bottom: calc(var(--pt) * 0.5) solid var(--gray);
+  border-bottom: calc(var(--pt) * var(--line-w)) solid var(--gray);
   transform: translateY(calc(var(--pt) * -0.1));
 }
 
@@ -380,6 +381,67 @@ h3,
 
   ul.links {
     display: block;
+  }
+}
+
+/* Increased contrast (macOS/iOS "Increase contrast", Android, Windows):
+   near-pure inks (>= 15:1), heavier leader lines, links always underlined,
+   thicker focus ring. Screen only: print already is the light master. */
+@media screen and (prefers-contrast: more) {
+  :root {
+    --ink: #000000;
+    --gray: #262626;
+    --dgray: #1f1f1f;
+    --intro-ink: #000000;
+    --line-w: 1.5;
+  }
+  @supports (color: lch(50% 0 0)) {
+    :root {
+      --gray: lch(15.16% 0 0);
+      --dgray: lch(11.76% 0 0);
+    }
+  }
+  .sheet a {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+  .sheet a:focus-visible {
+    outline-width: 3px;
+  }
+}
+
+@media screen and (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --ink: #ffffff;
+    --gray: #e0e0e0;
+    --dgray: #e6e6e6;
+    --intro-ink: #ffffff;
+  }
+  @supports (color: lch(50% 0 0)) {
+    :root {
+      --gray: lch(89.18% 0 0);
+      --dgray: lch(91.29% 0 0);
+    }
+  }
+}
+
+/* Forced colors (Windows Contrast Themes): the UA repaints with the system
+   palette and drops backgrounds. Structure here is carried by borders and
+   underlines, so it survives; we only pin the system-color roles. */
+@media screen and (forced-colors: active) {
+  .pairs dd::before {
+    border-bottom-color: CanvasText;
+  }
+  .sheet a {
+    color: LinkText;
+    text-decoration: underline;
+  }
+  .sheet a:focus-visible {
+    outline: 3px solid Highlight;
+  }
+  .photo {
+    forced-color-adjust: none;
   }
 }
 
