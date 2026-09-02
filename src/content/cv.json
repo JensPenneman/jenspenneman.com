@@ -60,9 +60,18 @@
     "endYear": "2022"
   },
   "skills": [
-    { "name": "Frontend", "keywords": ["React", "NextJS", "TypeScript", "Tailwind", "TanStack Query"] },
-    { "name": "Backend", "keywords": ["NodeJS", "GraphQL", "Hasura", "REST", "PostgreSQL", "Strapi"] },
-    { "name": "Cloud en tooling", "keywords": ["AWS", "Vercel", "Supabase", "Sentry", "Git", "pnpm", "Turborepo"] }
+    {
+      "name": "Frontend",
+      "keywords": ["React", "NextJS", "TypeScript", "Tailwind", "TanStack Query"]
+    },
+    {
+      "name": "Backend",
+      "keywords": ["NodeJS", "GraphQL", "Hasura", "REST", "PostgreSQL", "Strapi"]
+    },
+    {
+      "name": "Cloud en tooling",
+      "keywords": ["AWS", "Vercel", "Supabase", "Sentry", "Git", "pnpm", "Turborepo"]
+    }
   ],
   "education": [
     {

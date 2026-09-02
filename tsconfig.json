@@ -37,8 +37,15 @@
     "allowJs": true,
     "checkJs": true,
     "plugins": [{ "name": "next" }],
-    "paths": { "@/*": ["./*"] }
+    "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],
-  "exclude": ["node_modules", "out"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.mjs",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": ["node_modules", "out", "playwright-report", "test-results", "coverage"]
 }

@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
-import cv from "./cv.json";
+import { cvData } from "@/lib/cv/data";
 
 export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: `CV ${cv.basics.name}`,
-    short_name: cv.basics.name,
-    description: cv.basics.summary,
+    name: `CV ${cvData.basics.name}`,
+    short_name: cvData.basics.name,
+    description: cvData.basics.summary,
     lang: "nl",
     start_url: "/",
     display: "browser",

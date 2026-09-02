@@ -16,7 +16,11 @@
  * interpolate `in lch`; sRGB hex fallbacks cover ancient browsers.
  */
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 :root {
   --ink: #000000;
@@ -35,26 +39,40 @@
     --dgray: lch(37.82% 0 0);
     --intro-ink: lch(26.65% 0 0);
     --wash:
-      radial-gradient(140% 60% at 88% 6% in lch, lch(45.05% 13.25 282.3 / 0.06), lch(45.05% 13.25 282.3 / 0) 70%),
-      linear-gradient(180deg in lch,
+      radial-gradient(
+        140% 60% at 88% 6% in lch,
+        lch(45.05% 13.25 282.3 / 0.06),
+        lch(45.05% 13.25 282.3 / 0) 70%
+      ),
+      linear-gradient(
+        180deg in lch,
         lch(94.87% 0.35 19.4) 0%,
         lch(93.07% 0.52 290.2) 13%,
         lch(95.84% 0 0) 36%,
         lch(98.62% 0 0) 50%,
-        lch(100% 0 0) 64%);
+        lch(100% 0 0) 64%
+      );
   }
 }
 
 /* Screen inks darkened to WCAG 2.2 AAA contrast (>= 7:1 on white);
    print keeps the master's original inks. */
 @media screen {
-  :root { --gray: #555555; --dgray: #4a4a4a; }
+  :root {
+    --gray: #555555;
+    --dgray: #4a4a4a;
+  }
   @supports (color: lch(50% 0 0)) {
-    :root { --gray: lch(36.13% 0 0); --dgray: lch(33.53% 0 0); }
+    :root {
+      --gray: lch(36.13% 0 0);
+      --dgray: lch(33.53% 0 0);
+    }
   }
 }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+}
 
 body {
   background: #fff;
@@ -66,9 +84,16 @@ body {
    (Cmd +/-) and user/system font-size settings scale the WHOLE layout
    coherently. Media queries use em for the same reason. */
 
-.stage { display: flex; justify-content: center; padding: 3rem 1.5rem 4rem; }
+.stage {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 1.5rem 4rem;
+}
 
-.wrap { width: 100%; max-width: 58.75rem; }
+.wrap {
+  width: 100%;
+  max-width: 58.75rem;
+}
 
 .sheet {
   /* 0.0875rem = 1.4px at the 16px browser default */
@@ -80,22 +105,50 @@ body {
   line-height: 1.165;
 }
 
-.sheet a { color: inherit; text-decoration: none; }
+.sheet a {
+  color: inherit;
+  text-decoration: none;
+}
 
 @media screen {
-  .sheet a:hover { text-decoration: underline; }
-  .sheet a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 1px; }
+  .sheet a:hover {
+    text-decoration: underline;
+  }
+  .sheet a:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+    border-radius: 1px;
+  }
   /* AAA target size (2.5.5): standalone links get >= 44px hit areas;
      on screen the channel links flow as one wrapping row */
-  ul.links { display: flex; flex-wrap: wrap; column-gap: calc(var(--pt) * 24); row-gap: 0; }
-  ul.links li { min-height: 44px; display: flex; align-items: center; }
+  ul.links {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: calc(var(--pt) * 24);
+    row-gap: 0;
+  }
+  ul.links li {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
 }
 
 /* section rows: gray label gutter + content column */
-.row { display: grid; grid-template-columns: var(--col1) 1fr; align-items: start; }
-section.row { margin-top: calc(var(--pt) * 31.5); }
-header.head + section.row { margin-top: calc(var(--pt) * 51.7); }
-.sheet > section.row:last-of-type { margin-top: calc(var(--pt) * 30.8); }
+.row {
+  display: grid;
+  grid-template-columns: var(--col1) 1fr;
+  align-items: start;
+}
+section.row {
+  margin-top: calc(var(--pt) * 31.5);
+}
+header.head + section.row {
+  margin-top: calc(var(--pt) * 51.7);
+}
+.sheet > section.row:last-of-type {
+  margin-top: calc(var(--pt) * 30.8);
+}
 
 h2 {
   font-size: calc(var(--pt) * 9);
@@ -115,7 +168,10 @@ h2 {
   object-fit: cover;
 }
 
-.contact { font-size: calc(var(--pt) * 6.96); color: var(--dgray); }
+.contact {
+  font-size: calc(var(--pt) * 6.96);
+  color: var(--dgray);
+}
 
 h1 {
   margin-top: calc(var(--pt) * 16.9);
@@ -136,9 +192,16 @@ h1 {
 
 /* ---------------- leader rows (label ..... value) ---------------- */
 
-.pairs:not(.cols2) { margin-top: calc(var(--pt) * -0.7); }
-.pairs .lr { display: flex; align-items: baseline; }
-.pairs .lr + .lr { margin-top: calc(var(--pt) * 9.65); }
+.pairs:not(.cols2) {
+  margin-top: calc(var(--pt) * -0.7);
+}
+.pairs .lr {
+  display: flex;
+  align-items: baseline;
+}
+.pairs .lr + .lr {
+  margin-top: calc(var(--pt) * 9.65);
+}
 
 .pairs.cols2 {
   display: grid;
@@ -146,9 +209,13 @@ h1 {
   column-gap: calc(var(--pt) * 8.8);
   row-gap: calc(var(--pt) * 8.8);
 }
-.pairs.cols2 .lr + .lr { margin-top: 0; }
+.pairs.cols2 .lr + .lr {
+  margin-top: 0;
+}
 
-.pairs dt { white-space: nowrap; }
+.pairs dt {
+  white-space: nowrap;
+}
 .pairs dd {
   display: flex;
   flex: 1;
@@ -169,24 +236,40 @@ h1 {
 
 /* ---------------- jobs / education entries ---------------- */
 
-h3, .vaktitle {
+h3,
+.vaktitle {
   font-size: calc(var(--pt) * 12);
   font-weight: 700;
   line-height: 1.19;
   color: var(--ink);
 }
-.vak .vaktitle { font-size: calc(var(--pt) * 9); line-height: 1.192; }
+.vak .vaktitle {
+  font-size: calc(var(--pt) * 9);
+  line-height: 1.192;
+}
 
-.meta { margin-top: calc(var(--pt) * 4.2); }
+.meta {
+  margin-top: calc(var(--pt) * 4.2);
+}
 
-.jobs .job + .job { margin-top: calc(var(--pt) * 10.3); }
-.jobs.opl .job + .job { margin-top: calc(var(--pt) * 8.9); }
-.jobs .vak { margin-top: calc(var(--pt) * 9.4); }
+.jobs .job + .job {
+  margin-top: calc(var(--pt) * 10.3);
+}
+.jobs.opl .job + .job {
+  margin-top: calc(var(--pt) * 8.9);
+}
+.jobs .vak {
+  margin-top: calc(var(--pt) * 9.4);
+}
 
 /* ---------------- cursussen / links ---------------- */
 
-.course { margin-top: calc(var(--pt) * -0.8); }
-.course strong { color: var(--ink); }
+.course {
+  margin-top: calc(var(--pt) * -0.8);
+}
+.course strong {
+  color: var(--ink);
+}
 
 .links {
   display: grid;
@@ -203,49 +286,97 @@ h3, .vaktitle {
 /* ---------------- tablet: 40em-64em ---------------- */
 
 @media screen and (min-width: 40em) and (max-width: 63.99em) {
-  .stage { padding: 2rem 1.25rem 3rem; }
-  .sheet { --pt: 0.0825rem; --col1: calc(var(--pt) * 90); }
-  .sheet h2 { padding-right: calc(var(--pt) * 8); }
+  .stage {
+    padding: 2rem 1.25rem 3rem;
+  }
+  .sheet {
+    --pt: 0.0825rem;
+    --col1: calc(var(--pt) * 90);
+  }
+  .sheet h2 {
+    padding-right: calc(var(--pt) * 8);
+  }
 }
 
 /* ---------------- big screen: >= 100em ---------------- */
 
 @media screen and (min-width: 100em) {
-  .stage { padding: 4.5rem 2rem 6rem; }
-  .wrap { max-width: 70rem; }
-  .sheet { --pt: 0.1125rem; }
+  .stage {
+    padding: 4.5rem 2rem 6rem;
+  }
+  .wrap {
+    max-width: 70rem;
+  }
+  .sheet {
+    --pt: 0.1125rem;
+  }
 }
 
 /* ---------------- mobile: < 40em ---------------- */
 
 @media screen and (max-width: 39.99em) {
-  .stage { padding: 1.5rem 1rem 2.5rem; }
-  .sheet { --pt: 0.084375rem; }
+  .stage {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+  .sheet {
+    --pt: 0.084375rem;
+  }
 
-  .row { display: block; }
+  .row {
+    display: block;
+  }
   section.row,
   header.head + section.row,
-  .sheet > section.row:last-of-type { margin-top: calc(var(--pt) * 24); }
-  .row h2 { margin-bottom: calc(var(--pt) * 7); }
+  .sheet > section.row:last-of-type {
+    margin-top: calc(var(--pt) * 24);
+  }
+  .row h2 {
+    margin-bottom: calc(var(--pt) * 7);
+  }
 
-  .photo { margin-top: 0; margin-bottom: calc(var(--pt) * 14); }
-  h1 { margin-top: calc(var(--pt) * 10); }
-  .intro { margin-top: calc(var(--pt) * 8); text-align: left; }
+  .photo {
+    margin-top: 0;
+    margin-bottom: calc(var(--pt) * 14);
+  }
+  h1 {
+    margin-top: calc(var(--pt) * 10);
+  }
+  .intro {
+    margin-top: calc(var(--pt) * 8);
+    text-align: left;
+  }
 
-  .pairs.cols2 { display: block; }
-  .pairs.cols2 .lr + .lr { margin-top: calc(var(--pt) * 9.65); }
+  .pairs.cols2 {
+    display: block;
+  }
+  .pairs.cols2 .lr + .lr {
+    margin-top: calc(var(--pt) * 9.65);
+  }
 
-  ul.links { display: block; }
+  ul.links {
+    display: block;
+  }
 }
 
 /* ---------------- print: the exact CV on A4 ---------------- */
 
-@page { size: A4; margin: 0; }
+@page {
+  size: A4;
+  margin: 0;
+}
 
 @media print {
-  body { background: #fff; }
-  .stage { display: block; padding: 0; }
-  .wrap { width: auto; max-width: none; }
+  body {
+    background: #fff;
+  }
+  .stage {
+    display: block;
+    padding: 0;
+  }
+  .wrap {
+    width: auto;
+    max-width: none;
+  }
   .sheet {
     --pt: 1pt;
     --col1: calc(var(--pt) * 141.7);
@@ -256,9 +387,19 @@ h3, .vaktitle {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  .sheet a { text-decoration: none; }
-  section.row { break-inside: avoid; }
+  .sheet a {
+    text-decoration: none;
+  }
+  section.row {
+    break-inside: avoid;
+  }
   /* restore the master's exact print typography */
-  .intro { line-height: 1.4333; text-align: justify; max-width: none; }
-  .pairs dd { white-space: nowrap; }
+  .intro {
+    line-height: 1.4333;
+    text-align: justify;
+    max-width: none;
+  }
+  .pairs dd {
+    white-space: nowrap;
+  }
 }

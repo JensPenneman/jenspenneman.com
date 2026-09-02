@@ -11,13 +11,37 @@
     "basics": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "label", "summary", "email", "phone", "url", "location", "nationality", "driversLicense", "birth", "profiles"],
+      "required": [
+        "name",
+        "label",
+        "summary",
+        "email",
+        "phone",
+        "url",
+        "location",
+        "nationality",
+        "driversLicense",
+        "birth",
+        "profiles"
+      ],
       "properties": {
         "name": { "type": "string", "minLength": 1 },
-        "label": { "type": "string", "minLength": 1, "description": "Job title shown after the name" },
-        "summary": { "type": "string", "minLength": 1, "description": "Intro paragraph under the name" },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Job title shown after the name"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Intro paragraph under the name"
+        },
         "email": { "type": "string", "format": "email" },
-        "phone": { "type": "string", "pattern": "^\\+[1-9][0-9]{7,14}$", "description": "E.164, e.g. +32474180683" },
+        "phone": {
+          "type": "string",
+          "pattern": "^\\+[1-9][0-9]{7,14}$",
+          "description": "E.164, e.g. +32474180683"
+        },
         "url": { "type": "string", "format": "uri" },
         "location": {
           "type": "object",
@@ -79,7 +103,10 @@
       "properties": {
         "count": { "type": "integer", "minimum": 1 },
         "companies": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-        "andMore": { "type": "boolean", "description": "true renders an ellipsis after the company list" },
+        "andMore": {
+          "type": "boolean",
+          "description": "true renders an ellipsis after the company list"
+        },
         "startYear": { "$ref": "#/$defs/year" },
         "endYear": { "$ref": "#/$defs/year" }
       }
@@ -143,10 +170,7 @@
     "year": { "type": "string", "pattern": "^[0-9]{4}$" },
     "yearMonth": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
     "yearMonthOrNull": {
-      "oneOf": [
-        { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
-        { "type": "null" }
-      ]
+      "oneOf": [{ "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" }, { "type": "null" }]
     }
   }
 }

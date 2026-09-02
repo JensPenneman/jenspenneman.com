@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
-import cv from "./cv.json";
+import { siteUrl } from "@/lib/seo/siteUrl";
 
 export const dynamic = "force-static";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: "*", allow: "/" },
-    sitemap: new URL("/sitemap.xml", cv.basics.url).href,
+    sitemap: new URL("/sitemap.xml", siteUrl).href,
   };
 }
