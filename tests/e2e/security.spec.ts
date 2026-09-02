@@ -17,7 +17,19 @@ test.describe("security invariants of the export", () => {
     });
     expect(first.httpEquiv).toBe("Content-Security-Policy");
     expect(first.content).toContain("default-src 'none'");
+    expect(first.content).toContain("manifest-src 'self'");
     expect(first.content).not.toContain("unsafe-inline");
+  });
+
+  test("loads with no console errors, CSP violations or failed requests", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("console", (msg) => {
+      if (msg.type() === "error") errors.push(msg.text());
+    });
+    page.on("requestfailed", (req) => errors.push(`${req.url()} -> ${req.failure()?.errorText}`));
+    await page.goto("/", { waitUntil: "load" });
+    await page.waitForLoadState("networkidle");
+    expect(errors).toEqual([]);
   });
 
   test("uses no inline styles and only same-origin resources", async ({ page }) => {

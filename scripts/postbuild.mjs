@@ -27,6 +27,7 @@ const CSP = [
   "default-src 'none'",
   "img-src 'self'",
   "style-src 'self'",
+  "manifest-src 'self'",
   "base-uri 'none'",
   "form-action 'none'",
 ].join("; ");

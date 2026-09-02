@@ -2,17 +2,27 @@
  * vercel.json applied per `source` pattern, strong ETags with 304s, brotli /
  * gzip, 308 redirects for trailing slashes (trailingSlash: false), and
  * 404.html with a real 404 status. Used for local preview and the E2E suite.
- * Usage: node scripts/serve.mjs [port]   (default 4173) */
+ *
+ * Serves HTTPS by default (self-signed, see localCert.mjs) because the CSP
+ * carries upgrade-insecure-requests and WebKit applies it to loopback too
+ * (bug 250776): over plain http Safari upgrades every asset URL to https and
+ * fails. `--http` forces plain http for browsers that exempt loopback.
+ * Usage: node scripts/serve.mjs [port] [--http]   (default 4173, https) */
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
-import { createServer } from "node:http";
+import { createServer as createHttpServer } from "node:http";
+import { createServer as createHttpsServer } from "node:https";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { brotliCompressSync, constants, gzipSync } from "node:zlib";
+import { ensureLocalCert } from "./localCert.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const OUT = join(ROOT, "out");
-const PORT = Number(process.argv[2] ?? 4173);
+const args = process.argv.slice(2);
+const plainHttp = args.includes("--http");
+const PORT = Number(args.find((a) => /^\d+$/.test(a)) ?? 4173);
+const SCHEME = plainHttp ? "http" : "https";
 
 /**
  * @typedef {{ key: string, value: string }} Header
@@ -87,8 +97,9 @@ function compress(body, encoding) {
     : gzipSync(body);
 }
 
-createServer((req, res) => {
-  const url = new URL(req.url ?? "/", `http://127.0.0.1:${PORT}`);
+/** @type {import("node:http").RequestListener} */
+const handler = (req, res) => {
+  const url = new URL(req.url ?? "/", `${SCHEME}://127.0.0.1:${PORT}`);
   const pathname = decodeURIComponent(url.pathname);
 
   if (pathname.length > 1 && pathname.endsWith("/")) {
@@ -133,6 +144,16 @@ createServer((req, res) => {
 
   res.writeHead(status, headers);
   res.end(req.method === "HEAD" ? undefined : body);
-}).listen(PORT, "127.0.0.1", () => {
-  console.log(`serving ${OUT} at http://127.0.0.1:${PORT}/ (Vercel semantics)`);
+};
+
+const server = plainHttp
+  ? createHttpServer(handler)
+  : createHttpsServer(ensureLocalCert(), handler);
+server.listen(PORT, "127.0.0.1", () => {
+  console.log(`serving ${OUT} at ${SCHEME}://127.0.0.1:${PORT}/ (Vercel semantics)`);
+  if (plainHttp) {
+    console.warn(
+      "note: Safari applies upgrade-insecure-requests to loopback; assets will fail over plain http.",
+    );
+  }
 });
