@@ -1,81 +1,248 @@
-/* CV Jens Penneman - web copy of "CV versie 3.pdf".
-   The .sheet block is the exact print master: an A4 canvas of 595.32 x 841.92 pt
-   with absolutely positioned spans. On screen it is scaled to fit the viewport;
-   in print it renders 1:1 on A4 via the native browser print action. */
+/* CV Jens Penneman — reconstructed fully in HTML/CSS.
+ *
+ * One design unit `--pt` drives every dimension; the numbers in
+ * `calc(var(--pt) * N)` are the print master's point values, verbatim.
+ *
+ *   - screen:  a fluid webpage. No paper edges, no background wash — just a
+ *     centered content container. --pt is rem-based and media queries are
+ *     em-based, so browser zoom and user font-size settings scale the whole
+ *     layout coherently. mobile (< 40em): stacked single column, tablet
+ *     (40-64em): narrow label gutter, desktop: full label gutter,
+ *     big (>= 100em): wider container, larger type.
+ *   - print:   --pt = 1pt -> the exact CV on A4 (native browser print action),
+ *     including the gradient wash, verified against the PDF master.
+ *
+ * Colors are authored in the HCL (CSS `lch()`) color space and gradients
+ * interpolate `in lch`; sRGB hex fallbacks cover ancient browsers.
+ */
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  /* 595.32pt expressed in CSS px (1pt = 4/3 px) */
-  --sheet-w: 793.76px;
+  --ink: #000000;
+  --gray: #7f7f7f;
+  --dgray: #595959;
+  --intro-ink: #3f3f3f;
+  --wash:
+    radial-gradient(140% 60% at 88% 6%, rgb(100 106 128 / 0.06), rgb(100 106 128 / 0) 70%),
+    linear-gradient(180deg, #f1f0f0 0%, #ebebec 13%, #f3f3f3 36%, #fbfbfb 50%, #ffffff 64%);
+}
+
+@supports (color: lch(50% 0 0)) {
+  :root {
+    --ink: lch(0% 0 0);
+    --gray: lch(53.19% 0 0);
+    --dgray: lch(37.82% 0 0);
+    --intro-ink: lch(26.65% 0 0);
+    --wash:
+      radial-gradient(140% 60% at 88% 6% in lch, lch(45.05% 13.25 282.3 / 0.06), lch(45.05% 13.25 282.3 / 0) 70%),
+      linear-gradient(180deg in lch,
+        lch(94.87% 0.35 19.4) 0%,
+        lch(93.07% 0.52 290.2) 13%,
+        lch(95.84% 0 0) 36%,
+        lch(98.62% 0 0) 50%,
+        lch(100% 0 0) 64%);
+  }
 }
 
 html { -webkit-text-size-adjust: 100%; }
 
 body {
-  background: #e8eaed;
+  background: #fff;
   font-family: "Helvetica Neue", HelveticaNeue, Helvetica, Arial, sans-serif;
 }
 
-/* ---- screen presentation ---- */
-.stage { display: flex; justify-content: center; padding: 28px 14px; }
+/* ---------------- screen: fluid page, no paper ----------------
+   All screen dimensions derive from --pt in rem, so browser zoom
+   (Cmd +/-) and user/system font-size settings scale the WHOLE layout
+   coherently. Media queries use em for the same reason. */
 
-.paper {
-  position: relative;
-  width: min(var(--sheet-w), 100%);
-  aspect-ratio: 595.32 / 841.92;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14), 0 10px 36px rgba(0, 0, 0, 0.16);
-  container-type: inline-size;
-}
+.stage { display: flex; justify-content: center; padding: 3rem 1.5rem 4rem; }
+
+.wrap { width: 100%; max-width: 58.75rem; }
 
 .sheet {
-  position: relative;
-  width: 595.32pt;
-  height: 841.92pt;
-  overflow: hidden;
-  background: #fff;
-  transform-origin: top left;
-  /* unitless ratio of two lengths: paper width / natural sheet width */
-  transform: scale(tan(atan2(100cqw, var(--sheet-w))));
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
+  /* 0.0875rem = 1.4px at the 16px browser default */
+  --pt: 0.0875rem;
+  --col1: calc(var(--pt) * 141.7);
+
+  color: var(--gray);
+  font-size: calc(var(--pt) * 9);
+  line-height: 1.165;
 }
 
-/* fallback for browsers without container queries + CSS trig: scroll instead of scale */
-@supports not (transform: scale(tan(atan2(100cqw, 1px)))) {
-  .stage { overflow-x: auto; justify-content: flex-start; }
-  .paper { width: var(--sheet-w); flex: none; }
-}
-
-/* ---- CV internals (identical to the print master) ---- */
-.sheet .bg { position: absolute; left: -126pt; top: -2.58pt; width: 847.5pt; height: 847pt; max-width: none; }
-.sheet .photo { position: absolute; left: 36pt; top: 61.12pt; width: 85pt; height: 85pt; border-radius: 50%; object-fit: cover; }
-.sheet .t { position: absolute; white-space: pre; }
-.sheet .intro { white-space: normal; text-align: justify; }
-.sheet .hl { position: absolute; height: 0; border-top: 0.5pt solid #7f7f7f; }
 .sheet a { color: inherit; text-decoration: none; }
-.sheet h1, .sheet h2, .sheet h3 { font-weight: inherit; }
 
-/* ---- print: exact A4, no chrome ---- */
+@media screen {
+  .sheet a:hover { text-decoration: underline; }
+}
+
+/* section rows: gray label gutter + content column */
+.row { display: grid; grid-template-columns: var(--col1) 1fr; align-items: start; }
+section.row { margin-top: calc(var(--pt) * 31.5); }
+header.head + section.row { margin-top: calc(var(--pt) * 51.7); }
+.sheet > section.row:last-of-type { margin-top: calc(var(--pt) * 30.8); }
+
+h2 {
+  font-size: calc(var(--pt) * 9);
+  font-weight: 400;
+  line-height: 1.165;
+  color: var(--gray);
+}
+
+/* ---------------- header ---------------- */
+
+.photo {
+  display: block;
+  width: calc(var(--pt) * 85);
+  height: calc(var(--pt) * 85);
+  margin-top: calc(var(--pt) * 17.8);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.contact { font-size: calc(var(--pt) * 6.96); color: var(--dgray); }
+
+h1 {
+  margin-top: calc(var(--pt) * 16.9);
+  font-size: calc(var(--pt) * 18.96);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.intro {
+  margin-top: calc(var(--pt) * 5.7);
+  font-size: calc(var(--pt) * 12);
+  line-height: 1.4333;
+  text-align: justify;
+  color: var(--intro-ink);
+}
+
+/* ---------------- leader rows (label ..... value) ---------------- */
+
+.pairs:not(.cols2) { margin-top: calc(var(--pt) * -0.7); }
+.pairs .lr { display: flex; align-items: baseline; }
+.pairs .lr + .lr { margin-top: calc(var(--pt) * 9.65); }
+
+.pairs.cols2 {
+  display: grid;
+  grid-template-columns: 1fr 1.035fr;
+  column-gap: calc(var(--pt) * 8.8);
+  row-gap: calc(var(--pt) * 8.8);
+}
+.pairs.cols2 .lr + .lr { margin-top: 0; }
+
+.pairs dt { white-space: nowrap; }
+.pairs dd {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  min-width: 0;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--ink);
+}
+.pairs dd::before {
+  content: "";
+  flex: 1;
+  min-width: calc(var(--pt) * 15);
+  margin: 0 calc(var(--pt) * 7);
+  border-bottom: calc(var(--pt) * 0.5) solid var(--gray);
+  transform: translateY(calc(var(--pt) * -0.1));
+}
+
+/* ---------------- jobs / education entries ---------------- */
+
+h3, .vaktitle {
+  font-size: calc(var(--pt) * 12);
+  font-weight: 700;
+  line-height: 1.19;
+  color: var(--ink);
+}
+.vak .vaktitle { font-size: calc(var(--pt) * 9); line-height: 1.192; }
+
+.meta { margin-top: calc(var(--pt) * 4.2); }
+
+.jobs .job + .job { margin-top: calc(var(--pt) * 10.3); }
+.jobs.opl .job + .job { margin-top: calc(var(--pt) * 8.9); }
+.jobs .vak { margin-top: calc(var(--pt) * 9.4); }
+
+/* ---------------- cursussen / links ---------------- */
+
+.course { margin-top: calc(var(--pt) * -0.8); }
+.course strong { color: var(--ink); }
+
+.links {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, auto);
+  grid-template-columns: calc(var(--pt) * 194.6) auto;
+  justify-content: start;
+  row-gap: calc(var(--pt) * 0.65);
+  list-style: none;
+  font-size: calc(var(--pt) * 6.96);
+  color: var(--dgray);
+}
+
+/* ---------------- tablet: 40em-64em ---------------- */
+
+@media screen and (min-width: 40em) and (max-width: 63.99em) {
+  .stage { padding: 2rem 1.25rem 3rem; }
+  .sheet { --pt: 0.0825rem; --col1: calc(var(--pt) * 90); }
+  .sheet h2 { padding-right: calc(var(--pt) * 8); }
+}
+
+/* ---------------- big screen: >= 100em ---------------- */
+
+@media screen and (min-width: 100em) {
+  .stage { padding: 4.5rem 2rem 6rem; }
+  .wrap { max-width: 70rem; }
+  .sheet { --pt: 0.1125rem; }
+}
+
+/* ---------------- mobile: < 40em ---------------- */
+
+@media screen and (max-width: 39.99em) {
+  .stage { padding: 1.5rem 1rem 2.5rem; }
+  .sheet { --pt: 0.084375rem; }
+
+  .row { display: block; }
+  section.row,
+  header.head + section.row,
+  .sheet > section.row:last-of-type { margin-top: calc(var(--pt) * 24); }
+  .row h2 { margin-bottom: calc(var(--pt) * 7); }
+
+  .photo { margin-top: 0; margin-bottom: calc(var(--pt) * 14); }
+  h1 { margin-top: calc(var(--pt) * 10); }
+  .intro { margin-top: calc(var(--pt) * 8); text-align: left; }
+
+  .pairs.cols2 { display: block; }
+  .pairs.cols2 .lr + .lr { margin-top: calc(var(--pt) * 9.65); }
+  .pairs dd { white-space: normal; text-align: right; }
+
+  .links { display: block; }
+  .links li + li { margin-top: calc(var(--pt) * 4); }
+}
+
+/* ---------------- print: the exact CV on A4 ---------------- */
+
 @page { size: A4; margin: 0; }
 
 @media print {
   body { background: #fff; }
   .stage { display: block; padding: 0; }
-  .paper {
-    width: auto;
-    aspect-ratio: auto;
-    overflow: visible;
-    box-shadow: none;
-    container-type: normal;
-  }
+  .wrap { width: auto; max-width: none; }
   .sheet {
-    transform: none;
-    /* clamp to exact A4 (595.28 x 841.89 pt) so nothing spills to page 2 */
-    width: 595.28pt;
-    height: 841.89pt;
-    break-inside: avoid;
+    --pt: 1pt;
+    --col1: calc(var(--pt) * 141.7);
+    width: calc(var(--pt) * 595.32);
+    padding: calc(var(--pt) * 43.3) calc(var(--pt) * 36) calc(var(--pt) * 30) calc(var(--pt) * 35.9);
+    background: var(--wash);
+    background-color: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
+  .sheet a { text-decoration: none; }
+  section.row { break-inside: avoid; }
 }

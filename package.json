@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "gen": "bash tools/gen.sh",
     "dev": "next dev",
     "build": "next build",
     "preview": "python3 -m http.server -d out"

@@ -1,14 +1,19 @@
 # cv-site
 
-Web copy of `CV versie 3.pdf` as a fully static Next.js app (`output: "export"`).
+Jens's CV reconstructed fully in HTML/CSS as a static Next.js app (`output: "export"`).
 
-- `app/cv-markup.ts` is **generated** — edit `tools/gen.py`, then run `pnpm gen`.
-- Layout metrics come from Helvetica Neue on macOS (`/System/Library/Fonts/HelveticaNeue.ttc`);
-  the site itself uses the system font stack (no font files are served).
-- Printing happens via the native browser print action only (`@page` A4, margin 0).
+- Semantic markup in [app/page.tsx](app/page.tsx); the whole design lives in
+  [app/globals.css](app/globals.css).
+- One design unit `--pt` drives every dimension; the numbers in
+  `calc(var(--pt) * N)` are the print master's point values verbatim.
+- Layouts: mobile (stacked), tablet (narrow label gutter), desktop (A4 canvas),
+  big screen (grown sheet), print (`--pt: 1pt` -> exact CV on A4 via the native
+  browser print action, `@page` A4 margin 0).
+- Colors and gradients are authored in HCL (CSS `lch()`, gradients `in lch`)
+  with sRGB fallbacks.
+- Fonts: system stack ("Helvetica Neue", Helvetica, Arial) — nothing served.
 
 ```sh
-pnpm gen        # regenerate app/cv-markup.ts
 pnpm build      # static export to out/
 pnpm preview    # serve out/ (pass a port: pnpm preview 8123)
 ```
