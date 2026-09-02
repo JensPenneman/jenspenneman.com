@@ -23,6 +23,9 @@ jobs:
       - run: npm run knip
       - run: npm run test -- --coverage
       - run: npm run build
+      # postbuild syncs the style hash into vercel.json; it must be committed
+      - run: git diff --exit-code vercel.json app/apple-icon.png public/icons
+      - run: npm run sizes
       - run: npx playwright install --with-deps chromium webkit
       - run: npx playwright test --project=desktop --project=webkit --project=mobile
       - run: npm run lighthouse
