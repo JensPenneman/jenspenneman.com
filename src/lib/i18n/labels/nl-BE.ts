@@ -1,0 +1,28 @@
+import type { Labels } from "../labelsType";
+
+export const labels: Labels = {
+  language: "Taal",
+  personalia: "Personalia",
+  nationality: "Nationaliteit",
+  license: "Rijbewijs",
+  birthPlace: "Geboorteplaats",
+  birthDate: "Geboortedatum",
+  work: "Werkervaring",
+  skills: "Vaardigheden",
+  education: "Opleidingen",
+  certificates: "Cursussen (geattesteerd)",
+  languages: "Talen",
+  channels: "Andere informatiekanalen",
+  website: "Website",
+  photoAlt: "Portretfoto van",
+  present: "heden",
+  and: "en",
+  by: "bij",
+  holidayJobs: (count) => `+ ${count} vakantiejobs`,
+  workOrg: (company, city) => `bij ${company} te ${city}`,
+  educationOrg: (institution) => `bij ${institution}`,
+  holidayJobsMeta: (companies, startYear, endYear) => `bij ${companies} ${startYear} - ${endYear}`,
+  notFoundTitle: "Pagina niet gevonden",
+  notFoundText: "Deze pagina bestaat niet.",
+  notFoundBack: "Naar het CV",
+};

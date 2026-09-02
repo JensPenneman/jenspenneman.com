@@ -80,10 +80,24 @@ for (const file of walk(OUT)) {
   }
 }
 
-const index = readFileSync(join(OUT, "index.html"), "utf8");
+const DEFAULT_LOCALE = "nl-BE";
+const LOCALES = ["nl-BE", "en-GB", "fr-BE", "de-BE"];
+const index = readFileSync(join(OUT, `${DEFAULT_LOCALE}.html`), "utf8");
 if (!index.includes("application/ld+json")) {
-  throw new Error("JSON-LD script missing from index.html");
+  throw new Error(`JSON-LD script missing from ${DEFAULT_LOCALE}.html`);
 }
+
+/* Root fallback: on Vercel, vercel.json redirects / by Accept-Language before
+ * this file is ever served; elsewhere it forwards without JavaScript. */
+const links = LOCALES.map((l) => `<link rel="alternate" hreflang="${l}" href="/${l}">`).join("");
+const list = LOCALES.map(
+  (l) => `<li><a href="/${l}" hreflang="${l}" lang="${l}">${l}</a></li>`,
+).join("");
+writeFileSync(
+  join(OUT, "index.html"),
+  `<!doctype html><html lang="${DEFAULT_LOCALE}"><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=/${DEFAULT_LOCALE}"><title>CV</title>${links}<link rel="alternate" hreflang="x-default" href="/${DEFAULT_LOCALE}"></head><body><ul>${list}</ul></body></html>\n`,
+);
+console.log(`wrote root fallback index.html -> /${DEFAULT_LOCALE}`);
 
 console.log(
   `postbuild OK: ${htmlCount} HTML files hardened, ${jsCount} JS files removed (${(jsBytes / 1024).toFixed(1)} KiB)`,

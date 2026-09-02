@@ -20,6 +20,10 @@ const nextConfig = {
   /* Static hosting never sends it, but documents intent if output changes. */
   poweredByHeader: false,
 
+  /* Root layout is app/[locale]/layout.tsx, so the global 404 must render a
+   * full document itself (app/global-not-found.tsx). */
+  experimental: { globalNotFound: true },
+
   /* next/image is unused here; unoptimized keeps the static export valid
    * should one ever be introduced. */
   images: { unoptimized: true },

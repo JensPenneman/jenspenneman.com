@@ -1,0 +1,28 @@
+import type { Labels } from "../labelsType";
+
+export const labels: Labels = {
+  language: "Language",
+  personalia: "Personal details",
+  nationality: "Nationality",
+  license: "Driving licence",
+  birthPlace: "Place of birth",
+  birthDate: "Date of birth",
+  work: "Work experience",
+  skills: "Skills",
+  education: "Education",
+  certificates: "Courses (certified)",
+  languages: "Languages",
+  channels: "Other channels",
+  website: "Website",
+  photoAlt: "Portrait photo of",
+  present: "present",
+  and: "and",
+  by: "at",
+  holidayJobs: (count) => `+ ${count} holiday jobs`,
+  workOrg: (company, city) => `at ${company} in ${city}`,
+  educationOrg: (institution) => `at ${institution}`,
+  holidayJobsMeta: (companies, startYear, endYear) => `at ${companies} ${startYear} - ${endYear}`,
+  notFoundTitle: "Page not found",
+  notFoundText: "This page does not exist.",
+  notFoundBack: "Back to the CV",
+};

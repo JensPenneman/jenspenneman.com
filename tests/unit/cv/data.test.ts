@@ -14,7 +14,7 @@ function strings(value: unknown): string[] {
 }
 
 describe("cv.json", () => {
-  it("validates against cv.schema.json", () => {
+  it("validates against cv.schema.json (every localized field has all four locales)", () => {
     const ajv = new Ajv2020({ allErrors: true, strict: true });
     addFormats(ajv);
     const validate = ajv.compile(schema);
@@ -24,8 +24,7 @@ describe("cv.json", () => {
   });
 
   it("contains no em or en dashes anywhere (house rule: plain hyphens only)", () => {
-    const offenders = strings(cvData).filter((s) => /[—–]/.test(s));
-    expect(offenders).toEqual([]);
+    expect(strings(cvData).filter((s) => /[—–]/.test(s))).toEqual([]);
   });
 
   it("lists the current position first and education newest first", () => {

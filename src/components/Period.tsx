@@ -1,15 +1,15 @@
 import { monthYear } from "@/lib/format/monthYear";
-import { PRESENT } from "@/lib/format/period";
+import type { Locale } from "@/lib/i18n/locales";
 
-type Props = { start: string; end: string | null };
+type Props = { start: string; end: string | null; locale: Locale; present: string };
 
 /** "Juli 2025 - heden" with machine-readable <time> elements. */
-export function Period({ start, end }: Props) {
+export function Period({ start, end, locale, present }: Props) {
   return (
     <>
-      <time dateTime={start}>{monthYear(start)}</time>
+      <time dateTime={start}>{monthYear(start, locale)}</time>
       {" - "}
-      {end ? <time dateTime={end}>{monthYear(end)}</time> : PRESENT}
+      {end ? <time dateTime={end}>{monthYear(end, locale)}</time> : present}
     </>
   );
 }

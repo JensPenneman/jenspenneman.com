@@ -315,11 +315,40 @@ h3,
   color: var(--dgray);
 }
 
+/* ---------------- language switcher (screen only) ---------------- */
+
+.lang ul {
+  display: flex;
+  justify-content: flex-end;
+  gap: calc(var(--pt) * 10);
+  margin-bottom: calc(var(--pt) * 6);
+  list-style: none;
+  font-size: calc(var(--pt) * var(--fine));
+  color: var(--dgray);
+}
+nav.lang li {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.lang a[aria-current="page"] {
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
 /* ---------------- 404 ---------------- */
 
 .back {
   margin-top: calc(var(--pt) * 12);
   font-size: calc(var(--pt) * 12);
+}
+.back {
+  list-style: none;
+}
+.back li + li {
+  margin-top: calc(var(--pt) * 4);
 }
 .back a {
   color: var(--ink);
@@ -381,6 +410,15 @@ h3,
   .photo {
     margin-top: 0;
     margin-bottom: calc(var(--pt) * 14);
+  }
+  /* one contact item per line instead of wrapping around the separators */
+  .contact {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--pt) * 3);
+  }
+  .contact .sep {
+    display: none;
   }
   h1 {
     margin-top: calc(var(--pt) * 10);
@@ -509,6 +547,9 @@ h3,
   }
   .sheet a {
     text-decoration: none;
+  }
+  .lang {
+    display: none;
   }
   section.row {
     break-inside: avoid;
