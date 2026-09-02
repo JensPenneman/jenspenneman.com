@@ -47,6 +47,12 @@ presentation and live in `src/lib/labels.ts`.
 - WCAG 2.2 AAA on screen (axe-audited in E2E): >= 7:1 contrast, 1.5 line
   spacing + no justification for paragraphs, >= 44px link targets, focus
   outlines, landmarks (`section[aria-labelledby]`), `dl` semantics, h1-h3.
+- Follows the system on screen only (print is always the light master):
+  dark mode (`prefers-color-scheme`), increased contrast (`prefers-contrast:
+  more` — >= 15:1 inks, heavier leader lines, underlined links, thicker focus
+  ring, light and dark variants) and Windows Contrast Themes
+  (`forced-colors: active` — system-color roles, structure carried by borders
+  and underlines). All four combinations are axe-audited in E2E.
 
 ## SEO
 
