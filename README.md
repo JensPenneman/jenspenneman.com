@@ -77,10 +77,14 @@ Twitter card, icons, `manifest.webmanifest`, `sitemap.xml`, `robots.txt`,
 JSON-LD `ProfilePage`/`Person`. After deploying: verify the domain in Google Search
 Console and submit `/sitemap.xml`.
 
-**Analytics**: Vercel Web Analytics (`@vercel/analytics`, cookieless, no consent
-banner needed), rendered only on Vercel. Its script is inserted by a nonced
-Next chunk, which the CSP's `strict-dynamic` permits; beacons go to the same
-origin (`connect-src 'self'`).
+**Analytics** (both cookieless, so no consent banner):
+- Vercel Web Analytics (`@vercel/analytics`), rendered only on Vercel.
+- PostHog (open source, EU cloud) via `instrumentation-client.ts`, reverse-proxied
+  through `/pulse/*` rewrites so the CSP keeps `connect-src 'self'`; memory
+  persistence, no session recording. Enabled by setting
+  `NEXT_PUBLIC_POSTHOG_KEY` (project API key) in the Vercel environment.
+Scripts are inserted by nonced Next chunks, which the CSP's `strict-dynamic`
+permits.
 
 ## Performance
 

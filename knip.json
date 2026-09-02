@@ -3,6 +3,7 @@
   "entry": [
     "app/**/*.{ts,tsx}",
     "proxy.ts",
+    "instrumentation-client.ts",
     "scripts/*.mjs",
     "tests/**/*.{ts,tsx}",
     "*.config.{ts,mjs}"

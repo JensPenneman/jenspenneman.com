@@ -40,6 +40,20 @@ const nextConfig = {
   /* next/image is unused here (the portrait is a hand-built <picture>). */
   images: { unoptimized: true },
 
+  /* PostHog reverse proxy (EU region). The path is deliberately not named
+   * analytics/telemetry. skipTrailingSlashRedirect keeps PostHog's own
+   * trailing-slash endpoints intact. */
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    return [
+      {
+        source: "/pulse/static/:path*",
+        destination: "https://eu-assets.i.posthog.com/static/:path*",
+      },
+      { source: "/pulse/:path*", destination: "https://eu.i.posthog.com/:path*" },
+    ];
+  },
+
   async headers() {
     return [
       { source: "/(.*)", headers: securityHeaders },
