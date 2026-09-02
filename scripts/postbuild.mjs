@@ -21,6 +21,7 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 
 const OUT = fileURLToPath(new URL("../out", import.meta.url));
 
@@ -31,6 +32,9 @@ const buildCsp = (styleHashes) =>
     "img-src 'self'",
     `style-src 'self'${styleHashes.map((h) => ` '${h}'`).join("")}`,
     "manifest-src 'self'",
+    /* no script ever runs here, so this only matters for tools that probe
+       robots.txt / llms.txt from the page context (Lighthouse) */
+    "connect-src 'self'",
     "base-uri 'none'",
     "form-action 'none'",
   ].join("; ");
@@ -126,6 +130,18 @@ writeFileSync(
 console.log(`wrote root fallback index.html -> /${DEFAULT_LOCALE}`);
 
 for (const file of cssCache.keys()) unlinkSync(file);
+
+/* next/og writes lightly compressed PNGs; re-encode losslessly (identical
+ * pixels, ~3x smaller) so social scrapers fetch less. */
+for (const file of walk(OUT)) {
+  if (!file.endsWith("/opengraph-image")) continue;
+  const before = statSync(file).size;
+  const png = await sharp(readFileSync(file))
+    .png({ compressionLevel: 9, effort: 10, adaptiveFiltering: true })
+    .toBuffer();
+  writeFileSync(file, png);
+  console.log(`recompressed ${file.slice(OUT.length + 1)} (${before} -> ${png.length} bytes)`);
+}
 
 /* The HTTP header in vercel.json must carry the same hashes as the meta tag
  * (browsers intersect multiple policies). Sync it and remind to commit. */

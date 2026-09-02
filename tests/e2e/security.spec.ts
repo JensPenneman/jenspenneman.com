@@ -60,7 +60,13 @@ test.describe("security invariants of the export", () => {
         ...document.querySelectorAll(
           'link[rel~="stylesheet"], link[rel~="preload"], link[rel~="icon"], link[rel~="apple-touch-icon"], link[rel~="manifest"], img[src]',
         ),
-      ].map((el) => el.getAttribute("href") ?? el.getAttribute("src") ?? ""),
+      ].map(
+        (el) =>
+          el.getAttribute("href") ??
+          el.getAttribute("src") ??
+          el.getAttribute("imagesrcset")?.split(",")[0]?.trim().split(" ")[0] ??
+          "",
+      ),
     );
     for (const url of resources) {
       expect(url, `external resource: ${url}`).toMatch(/^\//);

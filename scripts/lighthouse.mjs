@@ -1,7 +1,5 @@
 /* Lighthouse gate: serves the export over HTTPS, audits every locale and
- * fails when a category drops below its floor. SEO's floor is 0.9 because
- * Lighthouse fetches robots.txt from the page context, which the CSP
- * (default-src 'none') blocks; real crawlers are unaffected. */
+ * fails when a category drops below its floor. */
 import { spawn } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -11,7 +9,7 @@ import lighthouse from "lighthouse";
 const PORT = 4174;
 const LOCALES = ["nl-BE", "en-GB", "fr-BE", "de-BE"];
 /** @type {Record<string, number>} */
-const FLOORS = { performance: 0.95, accessibility: 1, "best-practices": 1, seo: 0.9 };
+const FLOORS = { performance: 0.95, accessibility: 1, "best-practices": 1, seo: 1 };
 
 const server = spawn(
   process.execPath,

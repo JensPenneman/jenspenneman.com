@@ -90,17 +90,23 @@ the stylesheet inlined by `scripts/postbuild.mjs` and allowed through a CSP
 `sha256` hash — never `unsafe-inline`) plus a 2 KB AVIF portrait; no
 JavaScript, no web fonts. `npm run sizes` prints the per-asset report and fails
 above a 12 KB critical-path budget (CI runs it). PNG icons are palette-quantized
-by the image pipeline. Lighthouse: 100 / 100 / 100 / 92 on every locale.
+by the image pipeline; the AVIF portrait is preloaded (type-gated) as the LCP
+candidate; the OG cards are re-encoded losslessly (175 -> 58 KB). Lighthouse:
+100 / 100 / 100 / 100 on every locale.
 
 ## Security
 
 The export ships **zero executable JavaScript**: `scripts/postbuild.mjs` strips
 the Next runtime (JSON-LD is data, never executed), injects a strict CSP
-`<meta>` (`default-src 'none'`) and fails the build if a script survives. A
+`<meta>` (`default-src 'none'`, the inlined stylesheet by hash, `connect-src
+'self'` only so audit tools can probe robots.txt/llms.txt from the page) and
+fails the build if a script survives. A
 nonce is impossible on a static site (per-response uniqueness); no scripts at
 all is strictly stronger. Header-only directives (`frame-ancestors`, HSTS,
 COOP/COEP/CORP, Permissions-Policy, nosniff) live in [vercel.json](vercel.json);
 `/.well-known/security.txt` (RFC 9116) is in public/. E2E asserts all of it.
+After the first deploy, submit the domain at hstspreload.org (the header
+already carries `preload`).
 
 ## Developing
 

@@ -6,6 +6,7 @@ import { getLabels } from "@/lib/i18n/getLabels";
 
 vi.mock("@/lib/cv/photoSources", () => ({
   photoSources: {
+    avif160: "/p.avif",
     avif: "/p.avif 1x, /p2.avif 2x",
     webp: "/p.webp 1x, /p2.webp 2x",
     jpg: { src: "/p.jpg", srcSet: "/p.jpg 1x, /p2.jpg 2x", width: 160, height: 160 },
