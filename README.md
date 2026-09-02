@@ -77,10 +77,10 @@ Twitter card, icons, `manifest.webmanifest`, `sitemap.xml`, `robots.txt`,
 JSON-LD `ProfilePage`/`Person`. After deploying: verify the domain in Google Search
 Console and submit `/sitemap.xml`.
 
-**Analytics**: deliberately none — the CSP ships script-free and GA4 would
-require a GDPR consent banner. Options when wanted: Vercel Web Analytics
-(cookieless) or self-hosted Plausible/Umami; a nonce-based CSP already allows
-scripts we emit ourselves, so only the analytics origin needs `connect-src`.
+**Analytics**: Vercel Web Analytics (`@vercel/analytics`, cookieless, no consent
+banner needed), rendered only on Vercel. Its script is inserted by a nonced
+Next chunk, which the CSP's `strict-dynamic` permits; beacons go to the same
+origin (`connect-src 'self'`).
 
 ## Performance
 

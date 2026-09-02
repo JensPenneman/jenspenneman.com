@@ -51,8 +51,8 @@ const nextConfig = {
   /* Deliberately omitted, with reasons:
    * - compiler.removeConsole: unsupported by Turbopack (Next 16's bundler);
    *   there is no console usage to strip anyway.
-   * - reactCompiler: this page ships zero client components, so the React
-   *   Compiler would add a build dependency for nothing. */
+   * - reactCompiler: the only client component is Vercel Analytics, so the
+   *   React Compiler would add a build dependency for nothing. */
 } satisfies NextConfig;
 
 export default nextConfig;

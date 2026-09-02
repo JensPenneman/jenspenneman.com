@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import photo from "@/assets/photo.jpg";
 import { JsonLd } from "@/components/JsonLd";
+import { WebAnalytics } from "@/components/WebAnalytics";
 import { cvData } from "@/lib/cv/data";
 import { isLocale, LOCALES } from "@/lib/i18n/locales";
 import { buildJsonLd } from "@/lib/seo/jsonLd";
@@ -41,6 +42,7 @@ export default async function LocaleLayout({
       <body>
         <JsonLd data={jsonLd} nonce={nonce} />
         {children}
+        <WebAnalytics />
       </body>
     </html>
   );
