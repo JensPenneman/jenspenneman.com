@@ -96,4 +96,13 @@ test.describe("content", () => {
       expect((await res.body()).length).toBeGreaterThan(20_000);
     });
   }
+
+  test("publishes an llms.txt generated from the data model", async ({ request }) => {
+    const res = await request.get("/llms.txt");
+    expect(res.status()).toBe(200);
+    const text = await res.text();
+    expect(text.startsWith(`# ${cvData.basics.name}`)).toBe(true);
+    expect(text).toContain("> ");
+    for (const locale of LOCALES) expect(text).toContain(`/${locale})`);
+  });
 });
