@@ -1,44 +1,56 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("security invariants of the export", () => {
-  test("ships no executable JavaScript", async ({ page }) => {
-    await page.goto("/nl-BE");
-    const scripts = await page
-      .locator("script")
-      .evaluateAll((els) => els.map((el) => el.getAttribute("type")));
-    expect(scripts).toEqual(["application/ld+json"]);
-  });
+const CSP =
+  /^default-src 'none'; script-src 'nonce-([A-Za-z0-9+/=]+)' 'strict-dynamic'; style-src 'self' 'nonce-\1'; img-src 'self'; manifest-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'$/;
 
-  test("declares a strict CSP as the first element in <head>", async ({ page }) => {
-    await page.goto("/nl-BE");
-    const first = await page.evaluate(() => {
-      const el = document.head.firstElementChild;
-      return { httpEquiv: el?.getAttribute("http-equiv"), content: el?.getAttribute("content") };
-    });
-    expect(first.httpEquiv).toBe("Content-Security-Policy");
-    expect(first.content).toContain("default-src 'none'");
-    expect(first.content).toContain("manifest-src 'self'");
-    expect(first.content).not.toContain("unsafe-inline");
-    // the stylesheet is inlined and allowed by hash, never by 'unsafe-inline'
-    expect(first.content).toMatch(/style-src 'self' 'sha256-[A-Za-z0-9+/=]+'/);
-  });
+const HEADERS: Record<string, string | RegExp> = {
+  "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "permissions-policy": /camera=\(\)/,
+  "cross-origin-opener-policy": "same-origin",
+  "cross-origin-resource-policy": "same-origin",
+  "x-permitted-cross-domain-policies": "none",
+};
 
-  test("inlines the stylesheet: no CSS request, header and meta CSP agree on the hash", async ({
-    page,
+test.describe("security invariants", () => {
+  test("sends a strict nonce-based CSP header, no meta CSP, no unsafe-inline", async ({
+    request,
   }) => {
-    const res = await page.goto("/nl-BE");
-    await expect(page.locator('link[rel="stylesheet"]')).toHaveCount(0);
-    await expect(page.locator("head style")).toHaveCount(1);
-    const metaHash = await page.evaluate(
-      () =>
-        document.head.firstElementChild?.getAttribute("content")?.match(/'sha256-[^']+'/)?.[0] ??
-        "",
+    const res = await request.get("/nl-BE");
+    const csp = res.headers()["content-security-policy"] ?? "";
+    expect(csp).toMatch(CSP);
+    expect(csp).not.toContain("unsafe-inline");
+    expect(await res.text()).not.toContain('http-equiv="Content-Security-Policy"');
+  });
+
+  test("uses a fresh nonce on every response", async ({ request }) => {
+    const nonces = await Promise.all(
+      [1, 2].map(
+        async () =>
+          (await request.get("/nl-BE")).headers()["content-security-policy"]?.match(CSP)?.[1],
+      ),
     );
-    expect(metaHash).not.toBe("");
-    expect(res?.headers()["content-security-policy"]).toContain(metaHash);
-    // and the inline stylesheet actually applied under that policy
-    const display = await page.locator(".stage").evaluate((el) => getComputedStyle(el).display);
-    expect(display).toBe("flex");
+    expect(nonces[0]).toBeTruthy();
+    expect(nonces[0]).not.toBe(nonces[1]);
+  });
+
+  test("every script element carries the response nonce", async ({ request }) => {
+    const res = await request.get("/nl-BE");
+    const nonce = res.headers()["content-security-policy"]?.match(CSP)?.[1];
+    const html = await res.text();
+    const scripts = [...html.matchAll(/<script\b([^>]*)>/g)].map((m) => m[1] ?? "");
+    expect(scripts.length).toBeGreaterThan(0);
+    for (const attrs of scripts) expect(attrs, attrs).toContain(`nonce="${nonce}"`);
+  });
+
+  test("sends the OWASP header set", async ({ request }) => {
+    const headers = (await request.get("/nl-BE")).headers();
+    for (const [key, expected] of Object.entries(HEADERS)) {
+      if (typeof expected === "string") expect(headers[key], key).toBe(expected);
+      else expect(headers[key], key).toMatch(expected);
+    }
   });
 
   test("loads with no console errors, CSP violations or failed requests", async ({ page }) => {
@@ -54,11 +66,18 @@ test.describe("security invariants of the export", () => {
 
   test("uses no inline styles and only same-origin resources", async ({ page }) => {
     await page.goto("/nl-BE");
-    await expect(page.locator("[style]")).toHaveCount(0);
+    // next-route-announcer is Next's own a11y live region (styled via CSSOM, in
+    // its shadow root); everything we render must be free of inline styles
+    const inlineStyled = await page.evaluate(() =>
+      [...document.querySelectorAll("[style]")]
+        .filter((el) => el.tagName.toLowerCase() !== "next-route-announcer")
+        .map((el) => el.outerHTML.slice(0, 80)),
+    );
+    expect(inlineStyled).toEqual([]);
     const resources = await page.evaluate(() =>
       [
         ...document.querySelectorAll(
-          'link[rel~="stylesheet"], link[rel~="preload"], link[rel~="icon"], link[rel~="apple-touch-icon"], link[rel~="manifest"], img[src]',
+          'link[rel~="stylesheet"], link[rel~="preload"], link[rel~="icon"], link[rel~="apple-touch-icon"], link[rel~="manifest"], img[src], script[src]',
         ),
       ].map(
         (el) =>
@@ -68,18 +87,7 @@ test.describe("security invariants of the export", () => {
           "",
       ),
     );
-    for (const url of resources) {
-      expect(url, `external resource: ${url}`).toMatch(/^\//);
-    }
-  });
-
-  test("root fallback page is script-free with the same CSP", async ({ request }) => {
-    const res = await request.get("/", { headers: { "accept-language": "" }, maxRedirects: 0 });
-    // the local server negotiates like Vercel; fetch the static file directly
-    expect([307, 200]).toContain(res.status());
-    const html = await (await request.get("/index.html")).text();
-    expect(html).not.toMatch(/<script/);
-    expect(html).toContain("Content-Security-Policy");
-    expect(html).toContain('hreflang="x-default"');
+    expect(resources.length).toBeGreaterThan(0);
+    for (const url of resources) expect(url, `external resource: ${url}`).toMatch(/^\//);
   });
 });

@@ -1,6 +1,6 @@
 # cv-site
 
-Jens's CV as a fully static, data-driven Next.js app (`output: "export"`, npm, Node LTS).
+Jens's CV as a data-driven Next.js app on Vercel (npm, Node LTS via `.nvmrc`).
 
 ## Layout
 
@@ -18,8 +18,8 @@ src/
   lib/i18n/     locales, localized-string helper, labels + templates per locale
   lib/seo/      metadata, viewport, JSON-LD builder, site URL, page title
   styles/       globals.css (the whole design)
-scripts/        clean/images (prebuild), postbuild (hardening), serve (Vercel-like server),
-                localCert (HTTPS), lighthouse (score gate)
+scripts/        images (prebuild), icons (manual), hooks (local git hooks), lighthouse (score gate)
+proxy.ts        per-request nonce CSP + Accept-Language negotiation for /
 tests/unit/     Vitest: formatters, i18n, data-model rules, SEO, components
 tests/e2e/      Playwright: content per locale, negotiation, axe WCAG AAA, security, print
 tests/visual/   Playwright screenshot baselines (macOS)
@@ -32,9 +32,8 @@ House rule: **one file = one purpose.** No multi-component files, no barrels.
 Four locales at BCP 47 paths: `/nl-BE` (default), `/en-GB`, `/fr-BE`, `/de-BE`.
 Each page carries its own `lang`, title/description, canonical, `hreflang`
 alternates (+ `x-default`), `og:locale`, JSON-LD `inLanguage` and sitemap
-alternates. The root `/` is negotiated from `Accept-Language` by the redirects
-in `vercel.json` (mirrored locally by `scripts/serve.mjs`); `scripts/postbuild.mjs`
-writes a script-free meta-refresh fallback for hosts without edge redirects.
+alternates. The root `/` is negotiated from `Accept-Language` (q-values honoured) in
+`proxy.ts`, which redirects to the best locale with `Vary: Accept-Language`.
 UI strings and composition templates live in `src/lib/i18n/labels/<locale>.ts`.
 
 ## Editing the CV
@@ -80,34 +79,29 @@ Console and submit `/sitemap.xml`.
 
 **Analytics**: deliberately none — the CSP ships script-free and GA4 would
 require a GDPR consent banner. Options when wanted: Vercel Web Analytics
-(cookieless) or self-hosted Plausible/Umami; each needs `script-src` opened in
-`vercel.json` and `scripts/postbuild.mjs`.
+(cookieless) or self-hosted Plausible/Umami; a nonce-based CSP already allows
+scripts we emit ourselves, so only the analytics origin needs `connect-src`.
 
 ## Performance
 
-First load of a locale page is **two requests, ~7 KB brotli**: the HTML (with
-the stylesheet inlined by `scripts/postbuild.mjs` and allowed through a CSP
-`sha256` hash — never `unsafe-inline`) plus a 2 KB AVIF portrait; no
-JavaScript, no web fonts. `npm run sizes` prints the per-asset report and fails
-above a 12 KB critical-path budget (CI runs it). PNG icons are palette-quantized
-by the image pipeline; the AVIF portrait is preloaded (type-gated) as the LCP
-candidate; the OG cards are re-encoded losslessly (175 -> 58 KB). Measured Lighthouse
-scores: 100 / 100 / 100 / 100 on every locale; the CI gate (`npm run
-lighthouse`) enforces floors of 95 / 100 / 100 / 100 on the median of three runs.
+Pages render per request (the CSP nonce is unique per response) on Vercel's
+Node runtime; static assets are content-hashed and immutable. The portrait is
+AVIF/WebP/JPEG at 1x/2x with a type-gated preload; PNG icons are
+palette-quantized. `npm run lighthouse` audits every locale (median of three
+runs) and fails below 95 / 100 / 100 / 100.
 
 ## Security
 
-The export ships **zero executable JavaScript**: `scripts/postbuild.mjs` strips
-the Next runtime (JSON-LD is data, never executed), injects a strict CSP
-`<meta>` (`default-src 'none'`, the inlined stylesheet by hash, `connect-src
-'self'` only so audit tools can probe robots.txt/llms.txt from the page) and
-fails the build if a script survives. A
-nonce is impossible on a static site (per-response uniqueness); no scripts at
-all is strictly stronger. Header-only directives (`frame-ancestors`, HSTS,
-COOP/COEP/CORP, Permissions-Policy, nosniff) live in [vercel.json](vercel.json);
-`/.well-known/security.txt` (RFC 9116) is in public/. E2E asserts all of it.
-After the first deploy, submit the domain at hstspreload.org (the header
-already carries `preload`).
+`proxy.ts` sets a strict, **per-request nonce** Content-Security-Policy
+(`default-src 'none'; script-src 'nonce-…' 'strict-dynamic'; style-src 'self'
+'nonce-…'; …; frame-ancestors 'none'`) and Next applies the nonce to every
+script and style it emits; `upgrade-insecure-requests` is added only over
+HTTPS. The remaining headers (HSTS with preload, nosniff, X-Frame-Options,
+Referrer-Policy, Permissions-Policy, COOP, CORP) come from `next.config.ts`.
+`/.well-known/security.txt` (RFC 9116) is in public/; the GitHub repository
+requires signed commits, CI and CodeQL on `main`. E2E asserts the policy and
+that pages load without a single CSP violation. After the first deploy on a
+new domain, submit it at hstspreload.org.
 
 ## Developing
 
@@ -115,21 +109,13 @@ already carries `preload`).
 npm install          # also installs the git hooks (lefthook)
 npm run dev          # Next dev server
 npm run check        # biome + tsc + knip + vitest  (what CI runs first)
-npm run test:e2e     # build, then Playwright (Chromium, WebKit, mobile)
+npm run test:e2e     # build, then Playwright against next start (Chromium, WebKit, mobile)
 npm run test:visual  # screenshot baselines (macOS; `test:visual:update` to re-record)
-npm run lighthouse   # serve + audit every locale; fails below the score floors
-npm run sizes        # first-load size report + brotli budget
-npm run build        # static export to out/ + postbuild hardening
-npm run preview      # serve out/ over HTTPS (node scripts/serve.mjs [port] [--http])
+npm run lighthouse   # next start + audit every locale; fails below the score floors
+npm run build        # next build (prebuild generates the portrait variants)
+npm run start        # next start
 ```
 
-The preview is **HTTPS** with a self-signed certificate (`.certs/`, generated
-on first run; install [mkcert](https://github.com/FiloSottile/mkcert) to get one
-your OS trusts). Reason: the production CSP carries `upgrade-insecure-requests`
-and WebKit applies it to loopback too ([bug 250776](https://bugs.webkit.org/show_bug.cgi?id=250776)),
-so over plain http Safari upgrades every asset to https and the page loses its
-CSS. Serving https locally keeps the policy identical to production. E2E runs
-against the same server in Chromium, WebKit and mobile Chrome.
 
 - **Biome** formats and lints TS/TSX/JS/JSON/CSS (import sorting on save via
   the recommended VS Code extension).

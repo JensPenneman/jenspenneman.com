@@ -81,7 +81,8 @@ test.describe("content", () => {
         maxRedirects: 0,
       });
       expect(res.status(), header).toBe(307);
-      expect(res.headers()["location"], header).toBe(expected);
+      expect(res.headers()["location"], header).toMatch(new RegExp(`${expected}$`));
+      expect(res.headers()["vary"], header).toMatch(/Accept-Language/i);
     }
   });
 

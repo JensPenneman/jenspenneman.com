@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import photo from "@/assets/photo.jpg";
 import { JsonLd } from "@/components/JsonLd";
@@ -32,11 +33,13 @@ export default async function LocaleLayout({
 }: Params & { children: React.ReactNode }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
+  /* set per request by proxy.ts; reading it makes the page render per request */
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const jsonLd = buildJsonLd(cvData, locale, new URL(photo.src, siteUrl), new Date(), siteUrl);
   return (
     <html lang={locale}>
       <body>
-        <JsonLd data={jsonLd} />
+        <JsonLd data={jsonLd} nonce={nonce} />
         {children}
       </body>
     </html>

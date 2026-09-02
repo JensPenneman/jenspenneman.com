@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 4173;
-const BASE_URL = `https://127.0.0.1:${PORT}`;
+const BASE_URL = `http://127.0.0.1:${PORT}`;
 const isCI = Boolean(process.env["CI"]);
 
 export default defineConfig({
@@ -9,18 +9,15 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
-  /* Playwright defaults to half the cores; the CI runners can take all 4. */
   ...(isCI ? { workers: 4 } : {}),
   reporter: isCI ? [["github"], ["html", { open: "never" }]] : [["list"]],
-  /* The preview server is HTTPS with a self-signed certificate (see
-   * scripts/serve.mjs for why plain http breaks WebKit). */
-  use: { baseURL: BASE_URL, ignoreHTTPSErrors: true, trace: "on-first-retry" },
+  use: { baseURL: BASE_URL, trace: "on-first-retry" },
+  /* `next start` needs a prior `next build` (npm run test:e2e does both). */
   webServer: {
-    command: `node scripts/serve.mjs ${PORT}`,
-    url: `${BASE_URL}/`,
-    ignoreHTTPSErrors: true,
+    command: `npx next start -p ${PORT}`,
+    url: `${BASE_URL}/nl-BE`,
     reuseExistingServer: !isCI,
-    timeout: 30_000,
+    timeout: 60_000,
   },
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01 } },
   projects: [

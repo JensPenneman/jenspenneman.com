@@ -8,7 +8,6 @@ on:
 permissions:
   contents: read
 
-# Superseded runs on the same ref are pointless
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -25,84 +24,43 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id: modules
+        id: cache
         with:
           path: node_modules
           key: modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ steps.node.outputs.node-version }}
-      - if: steps.modules.outputs.cache-hit != 'true'
+      - if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
-      # `npm ci` runs it via prepare; on a cache hit nothing has generated
-      # src/assets/generated/photo.json + public/img yet, and typecheck needs them
       - run: npm run images
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run knip
       - run: npm run test -- --coverage
 
-  build:
+  versions:
+    # Playwright container tag must match the installed @playwright/test
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     outputs:
-      # e2e pins its container to the Playwright version resolved here
-      playwright: ${{ steps.playwright.outputs.version }}
+      playwright: ${{ steps.pw.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        id: node
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id: modules
-        with:
-          path: node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ steps.node.outputs.node-version }}
-      - if: steps.modules.outputs.cache-hit != 'true'
-        run: npm ci
-      - id: playwright
-        run: echo "version=$(node -p 'require("./node_modules/@playwright/test/package.json").version')" >> "$GITHUB_OUTPUT"
-      # prebuild regenerates images, so no separate step is needed here
-      - run: npm run build
-      # postbuild syncs the style hash into vercel.json; it must be committed
-      - run: git diff --exit-code vercel.json
-      - run: npm run sizes
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: site
-          path: out
-          # out/.well-known/security.txt would be dropped otherwise
-          include-hidden-files: true
-          retention-days: 1
+      - id: pw
+        run: echo "version=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")" >> "$GITHUB_OUTPUT"
 
   e2e:
-    needs: build
+    needs: versions
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # Browsers and their OS deps are baked in: no `playwright install` needed.
-    # Tag must match the package version, hence the build output.
     container:
-      image: mcr.microsoft.com/playwright:v${{ needs.build.outputs.playwright }}-noble
+      image: mcr.microsoft.com/playwright:v${{ needs.versions.outputs.playwright }}-noble
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        id: node
         with:
           node-version-file: .nvmrc
           cache: npm
-      # Same key as the host jobs: Linux, same lockfile, same Node. If the
-      # container cannot read that entry it just misses and installs.
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id: modules
-        with:
-          path: node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ steps.node.outputs.node-version }}
-      - if: steps.modules.outputs.cache-hit != 'true'
-        run: npm ci
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: site
-          path: out
-      # playwright.config.ts starts scripts/serve.mjs on the downloaded export
+      - run: npm ci
+      - run: npm run build
       - run: npx playwright test --project=desktop --project=webkit --project=mobile
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
@@ -112,7 +70,6 @@ jobs:
           retention-days: 7
 
   lighthouse:
-    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -123,17 +80,13 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id: modules
+        id: cache
         with:
           path: node_modules
           key: modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ steps.node.outputs.node-version }}
-      - if: steps.modules.outputs.cache-hit != 'true'
+      - if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: site
-          path: out
-      # chrome-launcher picks up the runner's Google Chrome
+      - run: npm run build
       - run: npm run lighthouse
 
   visual:
@@ -143,25 +96,17 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        id: node
         with:
           node-version-file: .nvmrc
           cache: npm
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id: modules
-        with:
-          path: node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ steps.node.outputs.node-version }}
-      - if: steps.modules.outputs.cache-hit != 'true'
-        run: npm ci
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: browsers
         with:
           path: ~/Library/Caches/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm ci
       - if: steps.browsers.outputs.cache-hit != 'true'
         run: npx playwright install chromium
-      # prebuild regenerates images, so no separate step is needed here
       - run: npm run build
       - run: npx playwright test --project=visual
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

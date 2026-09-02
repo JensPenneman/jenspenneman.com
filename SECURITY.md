@@ -34,7 +34,7 @@ be pursued.
 
 ## What is already in place
 
-Zero client-side JavaScript, a strict Content Security Policy, HSTS with
-preload, OWASP recommended headers, signed commits only, protected `main` with
-required CI, CodeQL, secret scanning with push protection and Dependabot
-security updates.
+A per-request nonce Content Security Policy (`strict-dynamic`, no
+`unsafe-inline`), HSTS with preload, OWASP recommended headers, signed commits
+only, protected `main` with required CI, CodeQL, secret scanning with push
+protection and Dependabot security updates.

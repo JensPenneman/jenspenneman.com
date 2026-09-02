@@ -1,14 +1,12 @@
 node_modules/
 .venv/
 .next/
-out/
 *.tsbuildinfo
 .DS_Store
 coverage/
 playwright-report/
 test-results/
 lefthook-local.yml
-.certs/
 src/assets/generated/
 public/img/
 .vercel

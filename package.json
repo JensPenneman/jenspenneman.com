@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/postbuild.mjs",
-    "preview": "node scripts/serve.mjs",
+    "prebuild": "node scripts/images.mjs",
+    "build": "next build",
+    "start": "next start",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
@@ -15,16 +16,14 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "npm run build && playwright test --project=desktop --project=webkit --project=mobile",
-    "knip": "knip",
-    "check": "npm run lint && npm run typecheck && npm run knip && npm run test",
-    "prepare": "node scripts/images.mjs && node scripts/hooks.mjs",
-    "prebuild": "node scripts/clean.mjs && node scripts/images.mjs",
-    "images": "node scripts/images.mjs",
     "test:visual": "playwright test --project=visual",
     "test:visual:update": "playwright test --project=visual --update-snapshots",
     "lighthouse": "node scripts/lighthouse.mjs",
-    "sizes": "node scripts/sizes.mjs",
-    "icons": "node scripts/icons.mjs"
+    "icons": "node scripts/icons.mjs",
+    "images": "node scripts/images.mjs",
+    "knip": "knip",
+    "check": "npm run lint && npm run typecheck && npm run knip && npm run test",
+    "prepare": "node scripts/images.mjs && node scripts/hooks.mjs"
   },
   "dependencies": {
     "next": "^16.3.4",
