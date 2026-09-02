@@ -11,3 +11,6 @@ lefthook-local.yml
 .certs/
 src/assets/generated/
 public/img/
+.vercel
+.env*
+.vercel/
