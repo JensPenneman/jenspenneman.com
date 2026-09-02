@@ -1,4 +1,4 @@
 Contact: mailto:jenspenneman26@gmail.com
-Expires: 2027-09-02T00:00:00.000Z
+Expires: 2027-08-01T00:00:00.000Z
 Preferred-Languages: nl, en
 Canonical: https://jenspenneman.com/.well-known/security.txt

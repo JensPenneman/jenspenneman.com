@@ -9,6 +9,10 @@ updates:
       timezone: Europe/Brussels
     commit-message:
       prefix: "chore(deps)"
+    # auto-merge lands minor/patch on green CI; the cooldown is the window in
+    # which a bad release can be yanked before it reaches main
+    cooldown:
+      default-days: 3
     groups:
       minor-and-patch:
         update-types: ["minor", "patch"]
@@ -22,3 +26,9 @@ updates:
       timezone: Europe/Brussels
     commit-message:
       prefix: "chore(ci)"
+    cooldown:
+      default-days: 3
+    groups:
+      actions:
+        patterns: ["*"]
+    open-pull-requests-limit: 3
