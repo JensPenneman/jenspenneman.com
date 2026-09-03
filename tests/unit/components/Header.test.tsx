@@ -32,6 +32,14 @@ describe("Header", () => {
       "Teerlingstraat 69/2, 9190 Stekene, België",
     );
   });
+  it("wraps the postal address in its own element so it can be its own row", () => {
+    render(<Header basics={cvData.basics} locale="nl-BE" labels={getLabels("nl-BE")} />);
+    expect(document.querySelector("address .where")).toHaveTextContent(
+      "Teerlingstraat 69/2, 9190 Stekene, België",
+    );
+    /* the address holds exactly three contact details, separators aside */
+    expect(document.querySelectorAll("address > :not(.sep)")).toHaveLength(3);
+  });
   it("puts the localized name and title in the single h1", () => {
     render(<Header basics={cvData.basics} locale="fr-BE" labels={getLabels("fr-BE")} />);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(

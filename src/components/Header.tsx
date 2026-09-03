@@ -40,7 +40,9 @@ export function Header({ basics, locale, labels }: Props) {
       </div>
       <div className="content">
         <address className="contact">
-          {addressLine(location)}
+          {/* the postal address is an element, not a bare text node, so the
+              mobile layout can give it the same 44px row as the two links */}
+          <span className="where">{addressLine(location)}</span>
           <Separator />
           <a href={`mailto:${basics.email}`}>{basics.email}</a>
           <Separator />
