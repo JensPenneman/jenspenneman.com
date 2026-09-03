@@ -54,6 +54,10 @@ presentation and live in `src/lib/i18n/labels/<locale>.ts`.
 - Screen is a fluid webpage (rem unit, em media queries — browser zoom and
   user font-size settings scale everything coherently): mobile < 40em stacked,
   tablet 40-64em narrow gutter, desktop, big >= 100em.
+- Phones get their own composition on one vertical-rhythm scale (`--sp-1..4`,
+  derived from `--pt`): label-over-value pairs instead of leader lines, tracked uppercase
+  section labels over a hairline (`--rule`, defined for every color mode), 44px
+  contact/link rows, `hyphens: auto` so nothing overflows at 320px with 200% text.
 - Print (`--pt: 1pt`) reproduces the exact CV on A4 via the native browser
   print action, gradient wash included — verified against the PDF master.
 - Colors authored in HCL (CSS `lch()`, gradients `in lch`), sRGB fallbacks.
