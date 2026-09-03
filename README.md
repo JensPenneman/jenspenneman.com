@@ -114,6 +114,17 @@ requires signed commits, CI and CodeQL on `main`. E2E asserts the policy and
 that pages load without a single CSP violation. After the first deploy on a
 new domain, submit it at hstspreload.org.
 
+## Domain and DNS
+
+Registrar: Hostinger. Authoritative DNS: Cloudflare (free plan, every record
+DNS-only — Vercel serves the site directly, nothing is proxied, Universal SSL is
+disabled so Cloudflare adds no CAA records of its own). DNSSEC is on (ECDSA
+P-256, algorithm 13; the DS record lives at the registrar). The zone carries the
+Vercel A/CNAME records, `CAA 0 issue "letsencrypt.org"`, a null SPF and a
+`p=reject` DMARC (the domain sends no mail), and the search-engine verification
+TXT records. Changing nameservers is scriptable through the Hostinger CLI; the
+DS record is hPanel-only.
+
 ## Developing
 
 ```sh
