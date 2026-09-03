@@ -80,8 +80,10 @@ deploy; Google only takes the sitemap via Search Console. Verification tokens
 go in the Vercel environment as `GOOGLE_SITE_VERIFICATION`,
 `BING_SITE_VERIFICATION` and `YANDEX_VERIFICATION` (rendered as meta tags when set).
 
-**Analytics** (both cookieless, so no consent banner):
+**Analytics** (all cookieless, so no consent banner):
 - Vercel Web Analytics (`@vercel/analytics`), rendered only on Vercel.
+- Vercel Speed Insights (`@vercel/speed-insights`), Core Web Vitals per route,
+  rendered only on Vercel; reports to a same-origin endpoint (`connect-src 'self'`).
 - PostHog (open source, EU cloud, project `jenspenneman.com`) via
   `instrumentation-client.ts`, reverse-proxied through `/pulse/*` rewrites so the
   CSP keeps `connect-src 'self'`; memory persistence, anonymous-only, no
