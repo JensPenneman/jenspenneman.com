@@ -82,10 +82,13 @@ go in the Vercel environment as `GOOGLE_SITE_VERIFICATION`,
 
 **Analytics** (both cookieless, so no consent banner):
 - Vercel Web Analytics (`@vercel/analytics`), rendered only on Vercel.
-- PostHog (open source, EU cloud) via `instrumentation-client.ts`, reverse-proxied
-  through `/pulse/*` rewrites so the CSP keeps `connect-src 'self'`; memory
-  persistence, no session recording. Enabled by setting
-  `NEXT_PUBLIC_POSTHOG_KEY` (project API key) in the Vercel environment.
+- PostHog (open source, EU cloud, project `jenspenneman.com`) via
+  `instrumentation-client.ts`, reverse-proxied through `/pulse/*` rewrites so the
+  CSP keeps `connect-src 'self'`; memory persistence, anonymous-only, no
+  session recording, exception autocapture on. `NEXT_PUBLIC_POSTHOG_KEY` (the
+  public project key) lives in the Vercel environment. Note: posthog-js drops
+  events from automation (headless UA, `navigator.webdriver`,
+  `userAgentData` brands), so headless probes never show captures.
 Scripts are inserted by nonced Next chunks, which the CSP's `strict-dynamic`
 permits.
 
