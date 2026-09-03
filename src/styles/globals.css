@@ -60,16 +60,21 @@
 }
 
 /* Screen inks darkened to WCAG 2.2 AAA contrast (>= 7:1 on white);
-   print keeps the master's original inks. */
+   print keeps the master's original inks.
+   `--rule` is the hairline the mobile layout uses for structure (under a
+   section label, between channel rows). Declared screen-only so print, which
+   carries structure with the master's leader lines instead, never sees it. */
 @media screen {
   :root {
     --gray: #555555;
     --dgray: #4a4a4a;
+    --rule: #c8c8c8;
   }
   @supports (color: lch(50% 0 0)) {
     :root {
       --gray: lch(36.13% 0 0);
       --dgray: lch(33.53% 0 0);
+      --rule: lch(81.5% 0 0);
     }
   }
 }
@@ -85,6 +90,7 @@
     --gray: #ababab;
     --dgray: #b8b8b8;
     --intro-ink: #dcdcdc;
+    --rule: #35373c;
   }
   @supports (color: lch(50% 0 0)) {
     :root {
@@ -93,6 +99,7 @@
       --gray: lch(69.98% 0 0);
       --dgray: lch(74.78% 0 0);
       --intro-ink: lch(87.76% 0 0);
+      --rule: lch(24.5% 2.05 278.2);
     }
   }
 }
@@ -385,15 +392,75 @@ nav.lang li {
   }
 }
 
-/* ---------------- mobile: < 40em ---------------- */
+/* ---------------- mobile: < 40em ----------------
+ *
+ * A phone is not a squeezed A4, so below 40em the page is re-set rather than
+ * re-flowed. Four things drive it:
+ *
+ *  1. ONE VERTICAL RHYTHM. `--sp-1`..`--sp-4` below are the only spacing values
+ *     on the page: every margin here resolves to one of them, so the same kind
+ *     of gap is identical everywhere (section to section, heading to body,
+ *     entry to entry, dt to dd, item to item). The print master's optical
+ *     nudges (-0.7pt, -0.8pt) and its per-section variations (10.3 vs 8.9 vs
+ *     9.4pt between entries) are deliberately flattened here.
+ *  2. A COMFORTABLE SCALE. `--pt` grows to 1.6px so body text lands at 14.4px
+ *     with 1.5 line spacing (AAA 1.4.8), and `--fine` stops being fine print:
+ *     contact details and channel links read at body size.
+ *  3. NO LEADER LINES. A leader needs a wide, stable measure; at 320-430px it
+ *     degenerates into a stub beside a ragged right-aligned value. Pairs stack
+ *     instead: small gray label, bold value beneath it.
+ *  4. TAPPABLE ROWS. Contact details and channel links become even 44px rows
+ *     (AAA 2.5.5) and are underlined, because a phone has no hover to reveal
+ *     that they are links.
+ *
+ * Everything is inside `@media screen`, so print is untouched. */
 
 @media screen and (max-width: 39.99em) {
+  :root {
+    /* contact / channels / language switcher read at body size here */
+    --fine: 9;
+  }
+
   .stage {
     padding: 1.5rem 1rem 2.5rem;
   }
+
   .sheet {
-    --pt: 0.084375rem;
+    /* 0.1rem = 1.6px at the 16px browser default -> 14.4px body text */
+    --pt: 0.1rem;
+
+    /* the vertical rhythm: four steps, and nothing else */
+    --sp-1: calc(var(--pt) * 4); /* 6.4px  inside one item: label/value, title/meta */
+    --sp-2: calc(var(--pt) * 9); /* 14.4px item to item, heading to body */
+    --sp-3: calc(var(--pt) * 14); /* 22.4px between the header's blocks */
+    --sp-4: calc(var(--pt) * 30); /* 48px   section to section */
+
+    /* AAA 1.4.8: >= 1.5 line spacing for every block of text */
+    line-height: 1.5;
+    /* Long unbreakable tokens -- Dutch compounds like
+       "communicatietechnieken" -- must never push the page sideways, at any
+       user font size. `break-word` (not `anywhere`) so a word only ever
+       splits when it cannot fit a line on its own: `anywhere` also shrinks
+       min-content, which lets `text-wrap: balance` split the name in the h1
+       when it had no need to. */
+    overflow-wrap: break-word;
   }
+
+  /* ---- language switcher: real 44x44 targets, right-aligned ---- */
+
+  .lang ul {
+    gap: var(--sp-1);
+    margin-bottom: var(--sp-3);
+  }
+  nav.lang a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* ---- sections: label over a hairline, then the content ---- */
 
   .row {
     display: block;
@@ -401,47 +468,145 @@ nav.lang li {
   section.row,
   header.head + section.row,
   .sheet > section.row:last-of-type {
-    margin-top: calc(var(--pt) * 24);
+    margin-top: var(--sp-4);
   }
+  /* the gray gutter has nowhere to go on one column, so the heading becomes a
+     small letter-spaced label over a rule -- unmistakable at arm's length,
+     and small enough not to compete with the bold entry titles */
   .row h2 {
-    margin-bottom: calc(var(--pt) * 7);
+    margin-bottom: var(--sp-2);
+    padding-bottom: var(--sp-1);
+    border-bottom: max(1px, calc(var(--pt) * var(--line-w))) solid var(--rule);
+    font-size: calc(var(--pt) * 8);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    /* at large user font sizes "informatiekanalen" needs a break; hyphenate
+       it (the page carries `lang`) rather than snapping it mid-syllable */
+    hyphens: auto;
   }
+
+  /* ---- header ---- */
 
   .photo {
     margin-top: 0;
-    margin-bottom: calc(var(--pt) * 14);
+    margin-bottom: var(--sp-3);
   }
-  /* one contact item per line instead of wrapping around the separators;
-     stacked links are standalone targets, so they get AAA 44px hit areas */
+  /* one contact detail per line, in even 44px rows: a single pitch for the
+     whole block, and AAA 2.5.5 target size for the two that are links */
   .contact {
     display: flex;
     flex-direction: column;
+  }
+  .contact > * {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    min-height: 44px;
+    /* a flex item sizes from min-content, and only `anywhere` shrinks that --
+       needed for the one token with no break opportunity, the email address */
+    overflow-wrap: anywhere;
   }
   .contact .sep {
     display: none;
   }
   .contact a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
   }
   h1 {
-    margin-top: calc(var(--pt) * 10);
+    margin-top: var(--sp-3);
+    /* 24px: a display size that suits one narrow column, and small enough
+       that "Penneman," still fits a line at a 200% user font size -- a
+       surname must never be snapped in half, nor leave its comma behind */
+    font-size: calc(var(--pt) * 15);
+    line-height: 1.15;
   }
   .intro {
-    margin-top: calc(var(--pt) * 8);
+    margin-top: var(--sp-2);
     text-align: left;
+    hyphens: auto;
   }
 
-  .pairs.cols2 {
+  /* ---- pairs: label stacked above value, no leaders ---- */
+
+  .pairs.cols2,
+  .pairs:not(.cols2) {
+    display: block;
+    margin-top: 0;
+  }
+  .pairs .lr {
     display: block;
   }
+  .pairs .lr + .lr,
   .pairs.cols2 .lr + .lr {
-    margin-top: calc(var(--pt) * 9.65);
+    margin-top: var(--sp-2);
   }
+  /* the label tier: smaller and gray, so a stacked pair still reads as one
+     label with one value rather than as two list lines */
+  .pairs dt {
+    font-size: calc(var(--pt) * 8);
+    white-space: normal;
+    color: var(--gray);
+  }
+  .pairs dd {
+    display: block;
+    margin-top: var(--sp-1);
+    text-align: left;
+  }
+  .pairs dd::before {
+    display: none;
+  }
+
+  /* ---- entries: bold title, secondary meta line ---- */
+
+  h3,
+  .vaktitle,
+  .meta,
+  .course {
+    hyphens: auto;
+  }
+  h3,
+  .vaktitle {
+    line-height: 1.25;
+  }
+  .meta {
+    margin-top: var(--sp-1);
+  }
+  /* a period stays on one line: "Juli 2025", never "Juli" / "2025" */
+  .meta time {
+    white-space: nowrap;
+  }
+  .jobs .job + .job,
+  .jobs.opl .job + .job,
+  .jobs .vak {
+    margin-top: var(--sp-2);
+  }
+
+  .course {
+    margin-top: 0;
+  }
+
+  /* ---- channels: an even, tappable, obviously-clickable list ---- */
 
   ul.links {
     display: block;
+    row-gap: 0;
+  }
+  ul.links li {
+    display: block;
+    min-height: 0;
+  }
+  ul.links li + li {
+    border-top: max(1px, calc(var(--pt) * var(--line-w))) solid var(--rule);
+  }
+  ul.links a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
   }
 }
 
@@ -455,6 +620,8 @@ nav.lang li {
     --dgray: #1f1f1f;
     --intro-ink: #000000;
     --line-w: 1.5;
+    /* substituted at use time, so the dark override below carries too */
+    --rule: var(--gray);
   }
   @supports (color: lch(50% 0 0)) {
     :root {
@@ -491,6 +658,9 @@ nav.lang li {
    palette and drops backgrounds. Structure here is carried by borders and
    underlines, so it survives; we only pin the system-color roles. */
 @media screen and (forced-colors: active) {
+  :root {
+    --rule: CanvasText;
+  }
   .pairs dd::before {
     border-bottom-color: CanvasText;
   }
