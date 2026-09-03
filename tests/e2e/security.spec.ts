@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const CSP =
   /^default-src 'none'; script-src 'nonce-([A-Za-z0-9+/=]+)' 'strict-dynamic'; style-src 'self' 'nonce-\1'; img-src 'self'; manifest-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'$/;
@@ -14,15 +14,45 @@ const HEADERS: Record<string, string | RegExp> = {
   "x-permitted-cross-domain-policies": "none",
 };
 
+/** Reads the raw server response through the browser's own HTML parser.
+ *
+ * Markup is never matched with a regular expression: `DOMParser` runs the real
+ * tokenizer, so `<SCRIPT>`, unusual whitespace, stray attributes, comments and
+ * malformed end tags are seen exactly as the browser sees them instead of
+ * slipping past a hand-written pattern. The parsed document has no browsing
+ * context, so nothing loads or executes and the nonce attributes stay readable
+ * — this still inspects the *server* HTML, not the live, client-mutated DOM.
+ */
+function parseServerHtml(page: Page, html: string) {
+  return page.evaluate((markup) => {
+    const doc = new DOMParser().parseFromString(markup, "text/html");
+    return {
+      /* Every element CSP guards with a nonce: scripts (inline, external and
+       * data blocks such as JSON-LD) and style elements. `el.nonce` is the
+       * parsed nonce; the attribute is the fallback for engines without it. */
+      nonced: [...doc.querySelectorAll<HTMLElement>("script, style")].map((el) => ({
+        nonce: el.nonce || el.getAttribute("nonce") || "",
+        type: el.getAttribute("type") ?? "",
+        markup: el.outerHTML.slice(0, 120),
+      })),
+      httpEquiv: [...doc.querySelectorAll("meta[http-equiv]")].map((el) =>
+        (el.getAttribute("http-equiv") ?? "").toLowerCase(),
+      ),
+    };
+  }, html);
+}
+
 test.describe("security invariants", () => {
   test("sends a strict nonce-based CSP header, no meta CSP, no unsafe-inline", async ({
+    page,
     request,
   }) => {
     const res = await request.get("/nl-BE");
     const csp = res.headers()["content-security-policy"] ?? "";
     expect(csp).toMatch(CSP);
     expect(csp).not.toContain("unsafe-inline");
-    expect(await res.text()).not.toContain('http-equiv="Content-Security-Policy"');
+    const { httpEquiv } = await parseServerHtml(page, await res.text());
+    expect(httpEquiv).not.toContain("content-security-policy");
   });
 
   test("uses a fresh nonce on every response", async ({ request }) => {
@@ -36,13 +66,15 @@ test.describe("security invariants", () => {
     expect(nonces[0]).not.toBe(nonces[1]);
   });
 
-  test("every script element carries the response nonce", async ({ request }) => {
+  test("every script and style element carries the response nonce", async ({ page, request }) => {
     const res = await request.get("/nl-BE");
     const nonce = res.headers()["content-security-policy"]?.match(CSP)?.[1];
-    const html = await res.text();
-    const scripts = [...html.matchAll(/<script\b([^>]*)>/g)].map((m) => m[1] ?? "");
-    expect(scripts.length).toBeGreaterThan(0);
-    for (const attrs of scripts) expect(attrs, attrs).toContain(`nonce="${nonce}"`);
+    expect(nonce).toBeTruthy();
+    const { nonced } = await parseServerHtml(page, await res.text());
+    expect(nonced.length).toBeGreaterThan(0);
+    // the JSON-LD data block is a script element too, so it needs a nonce
+    expect(nonced.map((el) => el.type)).toContain("application/ld+json");
+    for (const el of nonced) expect(el.nonce, el.markup).toBe(nonce);
   });
 
   test("sends the OWASP header set", async ({ request }) => {
