@@ -213,7 +213,6 @@ test.describe("platform behaviours", () => {
     await page.goto("/nl-BE");
     const onScreen = await page.evaluate(() => ({
       scroll: getComputedStyle(document.documentElement).scrollBehavior,
-      gutter: getComputedStyle(document.documentElement).getPropertyValue("scrollbar-gutter"),
     }));
     expect(onScreen.scroll).toBe("smooth");
 
@@ -223,7 +222,6 @@ test.describe("platform behaviours", () => {
       const photo = document.querySelector(".photo");
       return {
         scroll: getComputedStyle(document.documentElement).scrollBehavior,
-        gutter: getComputedStyle(document.documentElement).getPropertyValue("scrollbar-gutter"),
         padding: [body.paddingTop, body.paddingRight, body.paddingLeft],
         touch: getComputedStyle(document.querySelector("a") as Element).getPropertyValue(
           "touch-action",
@@ -238,7 +236,6 @@ test.describe("platform behaviours", () => {
     expect(inPrint.padding).toEqual(["0px", "0px", "0px"]);
     expect(inPrint.touch).toBe("auto");
     expect(inPrint.name).toBe("none");
-    if (onScreen.gutter !== "") expect(inPrint.gutter).toBe("auto");
   });
 
   test("switches locale with no console errors and no CSP violations", async ({ page }) => {

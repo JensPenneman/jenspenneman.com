@@ -41,15 +41,6 @@
     padding-left: env(safe-area-inset-left, 0px);
   }
 
-  /* ---------------- scrolling ----------------
-     Reserve the scrollbar's track even while it is hidden, so the centred
-     sheet cannot jump sideways when the content stops overflowing (zoomed
-     out far enough, the whole CV fits and the scrollbar disappears).
-     No effect where the platform draws overlay scrollbars. */
-  html {
-    scrollbar-gutter: stable;
-  }
-
   /* ---------------- tap latency ----------------
      A link reacts to the first tap instead of waiting out the window for a
      possible double-tap-to-zoom. Only double-tap zoom is given up: pinch

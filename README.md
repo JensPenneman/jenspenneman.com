@@ -132,7 +132,7 @@ standards, all progressive, all screen-only):
 - Cross-document view transitions for the language switch
   (`@view-transition { navigation: auto }`, the portrait morphs), smooth
   fragment scrolling, all inside `prefers-reduced-motion: no-preference`.
-- `viewport-fit: cover` with safe-area padding, `scrollbar-gutter: stable`,
+- `viewport-fit: cover` with safe-area padding,
   `touch-action: manipulation` on links, the portrait as high-priority LCP
   image decoded before first paint. Rejected after research (documented in
   the stylesheet): `content-visibility` (breaks sticky
