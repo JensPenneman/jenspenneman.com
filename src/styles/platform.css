@@ -1,0 +1,97 @@
+/* ---------------------------------------------------------------------------
+ * platform.css -- motion, navigation and platform behaviours.
+ *
+ * globals.css owns how the CV *looks*. This file owns how it *feels*: the
+ * cross-document view transition between the four locales, scrolling, tap
+ * latency and the safe areas of a notched phone. Nothing here changes a
+ * colour, a size or a position at rest.
+ *
+ * Two rules hold throughout:
+ *  1. SCREEN ONLY. Every block is inside `@media screen`, so the printed A4
+ *     sheet is byte-for-byte what it was before this file existed.
+ *  2. MOTION IS OPT-OUT. Everything that animates lives inside
+ *     `prefers-reduced-motion: no-preference`, so a reader who has asked for
+ *     less motion gets the plain, instant behaviour instead -- including the
+ *     view transition, which simply never starts.
+ * ------------------------------------------------------------------------ */
+
+@media screen {
+  /* ---------------- safe areas ----------------
+     The viewport is `viewport-fit=cover` (src/lib/seo/viewport.ts), so the
+     page background reaches the physical screen edges instead of stopping at
+     a letterboxed rectangle. Asking for that is also taking on the duty
+     these insets discharge: keeping the content itself clear of a notch and
+     of a rounded corner. They resolve to 0px on any display that has
+     neither, so this is a no-op on a desktop.
+
+     Padding sits on <body> rather than on .stage so that it *adds* to
+     whichever of the three responsive .stage paddings is in play instead of
+     replacing it. Each inset carries an explicit 0px fallback: an engine
+     that knows env() but not the variable name would otherwise drop the
+     whole declaration.
+
+     The bottom is deliberately absent. .stage already ends in 2.5-4rem of
+     padding, which clears the home indicator on its own, and Chrome on
+     Android stops collapsing its bottom toolbar on scroll as soon as it
+     sees `padding-bottom: env(safe-area-inset-bottom)` -- a real loss of
+     smoothness in exchange for padding that is already there. */
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
+  /* ---------------- scrolling ----------------
+     Reserve the scrollbar's track even while it is hidden, so the centred
+     sheet cannot jump sideways when the content stops overflowing (zoomed
+     out far enough, the whole CV fits and the scrollbar disappears).
+     No effect where the platform draws overlay scrollbars. */
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  /* ---------------- tap latency ----------------
+     A link reacts to the first tap instead of waiting out the window for a
+     possible double-tap-to-zoom. Only double-tap zoom is given up: pinch
+     zoom is untouched (the viewport sets no maximum-scale), so WCAG 1.4.4
+     still holds. */
+  a {
+    touch-action: manipulation;
+  }
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  /* ---------------- in-page scrolling ----------------
+     Every section carries an id, so #werkervaring and friends are shareable
+     deep links; they glide into place rather than teleporting. */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* ---------------- cross-document view transitions ----------------
+     Switching locale is a real, full page load through a plain <a> (see
+     LanguageSwitcher). `navigation: auto` lets the engine hold the outgoing
+     frame and cross-fade it into the incoming one, so the switch reads as
+     one page changing language instead of a white flash and a reload.
+     Engines without the rule -- and readers who asked for reduced motion,
+     who never reach this block -- navigate exactly as they did before. */
+  @view-transition {
+    navigation: auto;
+  }
+
+  /* The portrait is the same bytes at the same place in all four locales.
+     Its own transition name lifts it out of the page-wide cross-fade, so it
+     stays put, sharp and un-faded while the translated text changes around
+     it -- the one element that visibly does not move is what makes the
+     switch feel like a change of language rather than a change of page. */
+  .photo {
+    view-transition-name: portrait;
+  }
+
+  /* Quicker than the 250ms default. The two documents differ only in
+     language, so anything longer reads as lag rather than as polish. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 180ms;
+  }
+}

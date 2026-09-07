@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import "@/styles/platform.css";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -8,6 +9,7 @@ import { SpeedInsights } from "@/components/SpeedInsights";
 import { WebAnalytics } from "@/components/WebAnalytics";
 import { cvData } from "@/lib/cv/data";
 import { isLocale, LOCALES } from "@/lib/i18n/locales";
+import { speculationRules } from "@/lib/nav/speculationRules";
 import { buildJsonLd } from "@/lib/seo/jsonLd";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { siteUrl } from "@/lib/seo/siteUrl";
@@ -42,6 +44,14 @@ export default async function LocaleLayout({
     <html lang={locale}>
       <body>
         <JsonLd data={jsonLd} nonce={nonce} />
+        {/* Prefetch the sibling locales on hover; nonced like every other
+            script, because CSP guards speculation rules through script-src. */}
+        <script
+          type="speculationrules"
+          nonce={nonce}
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON.stringify output of the static locale list; no user input
+          dangerouslySetInnerHTML={{ __html: speculationRules(locale) }}
+        />
         {children}
         <WebAnalytics />
         <SpeedInsights />
