@@ -89,9 +89,10 @@ go in the Vercel environment as `GOOGLE_SITE_VERIFICATION`,
 - Vercel Speed Insights (`@vercel/speed-insights`), Core Web Vitals per route,
   rendered only on Vercel; reports to a same-origin endpoint (`connect-src 'self'`).
 - PostHog (open source, EU cloud, project `jenspenneman.com`) via
-  `instrumentation-client.ts`, reverse-proxied through `/pulse/*` rewrites so the
-  CSP keeps `connect-src 'self'`; memory persistence, anonymous-only, no
-  session recording, exception autocapture on. `NEXT_PUBLIC_POSTHOG_KEY` (the
+  `instrumentation-client.ts`, loaded as its own chunk from an idle callback so
+  the first paint never waits for it, reverse-proxied through `/pulse/*`
+  rewrites so the CSP keeps `connect-src 'self'`; memory persistence,
+  anonymous-only, no session recording, exception autocapture on. `NEXT_PUBLIC_POSTHOG_KEY` (the
   public project key) lives in the Vercel environment. Note: posthog-js drops
   events from automation (headless UA, `navigator.webdriver`,
   `userAgentData` brands), so headless probes never show captures.
@@ -106,6 +107,28 @@ AVIF/WebP/JPEG at 1x/2x with a type-gated preload; PNG icons are
 palette-quantized. `npm run lighthouse` audits every locale (median of three
 runs) and fails below 90 / 100 / 100 / 100 (production measures 100; shared CI
 runners score 93-97 with the Next runtime).
+
+**Smoothness** (`src/styles/platform.css` + `proxy.ts` + `layout.tsx`, all
+standards, all progressive, all screen-only):
+- The document is served `Cache-Control: private, max-age=0, must-revalidate`
+  instead of Next's default with `no-store`: shared caches still never store a
+  nonced response and every navigation still re-renders, but Back/Forward can
+  restore the page from the browser's back/forward cache in every engine
+  (`no-store` blocks it in Firefox, and `no-cache` does too on HTTPS).
+- A nonced `<script type="speculationrules">` prefetches the sibling locales on
+  hover (`prefetch`, not `prerender`: the analytics scripts are not
+  prerender-aware; a document rule, not a URL list, because WebKit ignores
+  `eagerness` on lists). Prefetched documents pass through `proxy.ts`
+  (`Sec-Purpose` header) so they carry the CSP they will be shown with.
+- Cross-document view transitions for the language switch
+  (`@view-transition { navigation: auto }`, the portrait morphs), smooth
+  fragment scrolling, all inside `prefers-reduced-motion: no-preference`.
+- `viewport-fit: cover` with safe-area padding, `scrollbar-gutter: stable`,
+  `touch-action: manipulation` on links, the portrait as high-priority LCP
+  image decoded before first paint. Rejected after research (documented in
+  the stylesheet): `content-visibility` (breaks sticky
+  descendants, a11y exposure unspecified), `prerender`, `overscroll-behavior`,
+  `hanging-punctuation`/`text-spacing-trim` (no-ops for this content).
 
 ## Security
 
