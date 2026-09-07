@@ -69,6 +69,13 @@
     --gray: #555555;
     --dgray: #4a4a4a;
     --rule: #c8c8c8;
+    /* AAA 2.5.5 minimum target size, and the padding a row of that height
+       puts above its own text line. `lh` resolves against the element that
+       uses it, so one token serves every breakpoint and user font size, and
+       `max()` keeps it at zero once the text line is taller than the target
+       (a 200% font size on a phone). */
+    --target: 44px;
+    --target-pad: max(0px, calc((var(--target) - 1lh) / 2));
   }
   @supports (color: lch(50% 0 0)) {
     :root {
@@ -156,17 +163,24 @@ body {
     border-radius: 1px;
   }
   /* AAA target size (2.5.5): standalone links get >= 44px hit areas;
-     on screen the channel links flow as one wrapping row */
+     on screen the channel links flow as one wrapping row.
+     The hit area belongs to the LINK (an `li` of 44px left the anchor itself
+     13px tall), and it grows symmetrically around the text rather than
+     pushing it down: the list is hoisted by exactly the padding one such row
+     puts above its first line, so the first link sits on the section's first
+     line like the first line of every other section. Wrapped rows stay a
+     full target apart, so no two hit areas overlap. */
   ul.links {
     display: flex;
     flex-wrap: wrap;
     column-gap: calc(var(--pt) * 24);
     row-gap: 0;
+    margin-block: calc(var(--target-pad) * -1);
   }
-  ul.links li {
-    min-height: 44px;
+  ul.links a {
     display: flex;
     align-items: center;
+    min-height: var(--target);
   }
 }
 
@@ -191,6 +205,59 @@ h2 {
   font-weight: 400;
   line-height: 1.165;
   color: var(--gray);
+}
+
+/* ---------------- sticky section labels (screen only) ----------------
+ *
+ * Each label pins to the top of the viewport while its own section scrolls
+ * past, then leaves with it. The h2 is a grid item, so its sticky containing
+ * block is its grid area -- which spans the whole row -- and it therefore
+ * sticks for exactly the length of the section. `align-self: start` keeps it
+ * a self-sized box: a stretched item fills its area and can never move.
+ *
+ * On phones the label is stacked above the content, so there it also needs
+ * the opaque page ground and a layer above the text sliding underneath.
+ *
+ * Padding and margin cancel out: the opaque band (and the stuck hairline)
+ * clear the descenders without changing the row's height.
+ *
+ * The stuck state is a progressive enhancement: the h2 is a scroll-state
+ * query container and the hairline is its ::after, because a container can
+ * only style its own descendants. Browsers without scroll-state queries drop
+ * both the container-type and the @container block, and simply never paint
+ * the line -- the label still sticks. */
+
+@media screen {
+  html {
+    /* Keyboard focus and anchor jumps must clear a pinned label. Three lines
+       of a phone label measure 3.58rem (1.04rem each, plus the rule and its
+       padding) -- and because the whole page is set in rem, that holds at any
+       user font size. */
+    scroll-padding-top: 3.75rem;
+  }
+  .row > h2 {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    z-index: 1;
+    padding-bottom: calc(var(--pt) * 4);
+    margin-bottom: calc(var(--pt) * -4);
+    background: var(--bg);
+    container-type: scroll-state;
+  }
+  .row > h2::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    border-bottom: max(1px, calc(var(--pt) * var(--line-w))) solid var(--rule);
+    opacity: 0;
+  }
+  @container scroll-state(stuck: top) {
+    .row > h2::after {
+      opacity: 1;
+    }
+  }
 }
 
 /* ---------------- header ---------------- */
@@ -231,9 +298,6 @@ h1 {
 
 /* ---------------- leader rows (label ..... value) ---------------- */
 
-.pairs:not(.cols2) {
-  margin-top: calc(var(--pt) * -0.7);
-}
 .pairs .lr {
   display: flex;
   align-items: baseline;
@@ -303,9 +367,6 @@ h3,
 
 /* ---------------- cursussen / links ---------------- */
 
-.course {
-  margin-top: calc(var(--pt) * -0.8);
-}
 .course strong {
   color: var(--ink);
 }
@@ -333,10 +394,26 @@ h3,
   font-size: calc(var(--pt) * var(--fine));
   color: var(--dgray);
 }
-nav.lang li {
-  min-height: 44px;
-  display: flex;
-  align-items: center;
+
+/* A row of controls, not inline text, so 2.5.5 applies in full and every LINK
+   needs 44x44 -- a 44px `li` around a 15x13 anchor never delivered that. Four
+   targets that size cannot fit the 29px letter pitch this block used to have
+   without overlapping one another, and an overlap hands part of a link's area
+   to its neighbour, so the codes have to spread: each one keeps its own 44px
+   cell, the 10pt gap between cells stays (it also keeps every focus ring
+   clear of the neighbouring code), and the code sits at the right of its cell
+   so the block still ends flush with the content edge -- the last code does
+   not move at all. Every code stays on exactly the same line, in the same
+   44px row, the same 6pt above the header. Phones already had 44x44 targets
+   and keep their centred codes. */
+@media screen {
+  nav.lang a {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: var(--target);
+    min-height: var(--target);
+  }
 }
 .lang a[aria-current="page"] {
   font-weight: 700;
@@ -411,7 +488,9 @@ nav.lang li {
  *     instead: small gray label, bold value beneath it.
  *  4. TAPPABLE ROWS. Contact details and channel links become even 44px rows
  *     (AAA 2.5.5) and are underlined, because a phone has no hover to reveal
- *     that they are links.
+ *     that they are links. A row that large pads its own text line, so both
+ *     blocks are hoisted by that padding (`--target-pad`) and their first
+ *     line still lands on the rhythm.
  *
  * Everything is inside `@media screen`, so print is untouched. */
 
@@ -453,11 +532,9 @@ nav.lang li {
     margin-bottom: var(--sp-3);
   }
   nav.lang a {
-    display: flex;
-    align-items: center;
     justify-content: center;
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--target);
+    min-height: var(--target);
   }
 
   /* ---- sections: label over a hairline, then the content ---- */
@@ -499,11 +576,17 @@ nav.lang li {
     display: flex;
     flex-direction: column;
   }
+  .contact {
+    /* hoisted by the padding those rows put above their first line, so the
+       block keeps the header's rhythm to the switcher above and the name
+       below, and every row reads at one pitch */
+    margin-block: calc(var(--target-pad) * -1);
+  }
   .contact > * {
     display: flex;
     align-items: center;
     min-width: 0;
-    min-height: 44px;
+    min-height: var(--target);
     /* a flex item sizes from min-content, and only `anywhere` shrinks that --
        needed for the one token with no break opportunity, the email address */
     overflow-wrap: anywhere;
@@ -534,7 +617,6 @@ nav.lang li {
   .pairs.cols2,
   .pairs:not(.cols2) {
     display: block;
-    margin-top: 0;
   }
   .pairs .lr {
     display: block;
@@ -584,29 +666,24 @@ nav.lang li {
     margin-top: var(--sp-2);
   }
 
-  .course {
-    margin-top: 0;
-  }
-
   /* ---- channels: an even, tappable, obviously-clickable list ---- */
 
   ul.links {
     display: block;
     row-gap: 0;
   }
-  ul.links li {
-    display: block;
-    min-height: 0;
-  }
   ul.links li + li {
     border-top: max(1px, calc(var(--pt) * var(--line-w))) solid var(--rule);
   }
   ul.links a {
-    display: flex;
-    align-items: center;
-    min-height: 44px;
     text-decoration: underline;
     text-underline-offset: 0.15em;
+  }
+
+  /* the label already sits on a hairline here, so the stuck state needs no
+     second one */
+  .row > h2::after {
+    content: none;
   }
 }
 
@@ -660,6 +737,9 @@ nav.lang li {
 @media screen and (forced-colors: active) {
   :root {
     --rule: CanvasText;
+  }
+  .row > h2 {
+    background: Canvas;
   }
   .pairs dd::before {
     border-bottom-color: CanvasText;
@@ -737,5 +817,14 @@ nav.lang li {
   }
   .pairs dd {
     white-space: nowrap;
+  }
+  /* the master's optical nudges: the first leader row and the course line sit
+     a hair above the label beside them. Screen aligns the first line of every
+     section with its label exactly instead. */
+  .pairs:not(.cols2) {
+    margin-top: calc(var(--pt) * -0.7);
+  }
+  .course {
+    margin-top: calc(var(--pt) * -0.8);
   }
 }
