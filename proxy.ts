@@ -71,7 +71,11 @@ export function proxy(request: NextRequest) {
    * Firefox too on an HTTPS origin -- which this is -- so `no-cache` would
    * have traded one Firefox blocker for another. `max-age=0` +
    * `must-revalidate` is the one spelling all three engines cache-check
-   * strictly and still keep in the back/forward cache. */
+   * strictly and still keep in the back/forward cache.
+   *
+   * Effective wherever the Next server sends the document itself. On Vercel
+   * the page function's own Cache-Control takes priority over this header
+   * (documented), so production keeps Next's default there. */
   response.headers.set("Cache-Control", "private, max-age=0, must-revalidate");
   return response;
 }

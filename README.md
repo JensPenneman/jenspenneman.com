@@ -119,11 +119,16 @@ runners score 93-97 with the Next runtime).
 
 **Smoothness** (`src/styles/platform.css` + `proxy.ts` + `layout.tsx`, all
 standards, all progressive, all screen-only):
-- The document is served `Cache-Control: private, max-age=0, must-revalidate`
-  instead of Next's default with `no-store`: shared caches still never store a
-  nonced response and every navigation still re-renders, but Back/Forward can
-  restore the page from the browser's back/forward cache in every engine
-  (`no-store` blocks it in Firefox, and `no-cache` does too on HTTPS).
+- `proxy.ts` sets `Cache-Control: private, max-age=0, must-revalidate` on the
+  document instead of Next's default with `no-store`: shared caches still never
+  store a nonced response and every navigation still re-renders, but Back/Forward
+  can restore the page from the browser's back/forward cache in every engine
+  (`no-store` blocks it in Firefox, and `no-cache` does too on HTTPS). This holds
+  when the Next server serves the document itself (`next start`, the E2E suite).
+  On Vercel the page function's own `Cache-Control` takes priority over headers
+  from the proxy or `next.config.ts` (documented Vercel behaviour), so production
+  still sends `no-store`; Chrome (since 2025) and Safari restore such pages from
+  the back/forward cache anyway, Firefox re-renders them.
 - A nonced `<script type="speculationrules">` prefetches the sibling locales on
   hover (`prefetch`, not `prerender`: the analytics scripts are not
   prerender-aware; a document rule, not a URL list, because WebKit ignores
