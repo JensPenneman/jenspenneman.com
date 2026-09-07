@@ -58,6 +58,15 @@ presentation and live in `src/lib/i18n/labels/<locale>.ts`.
   derived from `--pt`): label-over-value pairs instead of leader lines, tracked uppercase
   section labels over a hairline (`--rule`, defined for every color mode), 44px
   contact/link rows, `hyphens: auto` so nothing overflows at 320px with 200% text.
+- Every row's text sits on its own text line: the 44px hit areas (WCAG 2.5.5)
+  belong to the links themselves and grow symmetrically around the text
+  (`--target`, `--target-pad`), so the first line of every section aligns with
+  its label within 1px at every width — asserted by `tests/e2e/layout.spec.ts`.
+  Language-switcher links are 44×44 targets of their own.
+- Section labels are sticky (screen only): each pins to the top while its own
+  section scrolls past, on the page ground in every color mode, with a hairline
+  that appears only while stuck (`@container scroll-state(stuck: top)`,
+  progressive) and `scroll-padding-top` so focus never lands under a label.
 - Print (`--pt: 1pt`) reproduces the exact CV on A4 via the native browser
   print action, gradient wash included — verified against the PDF master.
 - Colors authored in HCL (CSS `lch()`, gradients `in lch`), sRGB fallbacks.
