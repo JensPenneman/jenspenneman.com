@@ -35,7 +35,7 @@ export function Header({ basics, locale, labels }: Props) {
             height={photoSources.jpg.height}
             alt={`${labels.photoAlt} ${basics.name}`}
             fetchPriority="high"
-            decoding="async"
+            decoding="sync"
           />
         </picture>
       </div>

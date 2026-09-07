@@ -200,11 +200,13 @@ test.describe("platform behaviours", () => {
     expect(authored.join(" ")).toContain("env(safe-area-inset-top");
   });
 
-  test("marks the portrait as the high-priority, async-decoded LCP image", async ({ page }) => {
+  test("marks the portrait as the high-priority LCP image, decoded before first paint", async ({
+    page,
+  }) => {
     await page.goto("/nl-BE");
     const img = page.locator("img.photo");
     await expect(img).toHaveAttribute("fetchpriority", "high");
-    await expect(img).toHaveAttribute("decoding", "async");
+    await expect(img).toHaveAttribute("decoding", "sync");
   });
 
   test("keeps every platform behaviour off the printed page", async ({ page }) => {
