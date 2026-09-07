@@ -394,10 +394,26 @@ h3,
   font-size: calc(var(--pt) * var(--fine));
   color: var(--dgray);
 }
-nav.lang li {
-  min-height: 44px;
-  display: flex;
-  align-items: center;
+
+/* A row of controls, not inline text, so 2.5.5 applies in full and every LINK
+   needs 44x44 -- a 44px `li` around a 15x13 anchor never delivered that. Four
+   targets that size cannot fit the 29px letter pitch this block used to have
+   without overlapping one another, and an overlap hands part of a link's area
+   to its neighbour, so the codes have to spread: each one keeps its own 44px
+   cell, the 10pt gap between cells stays (it also keeps every focus ring
+   clear of the neighbouring code), and the code sits at the right of its cell
+   so the block still ends flush with the content edge -- the last code does
+   not move at all. Every code stays on exactly the same line, in the same
+   44px row, the same 6pt above the header. Phones already had 44x44 targets
+   and keep their centred codes. */
+@media screen {
+  nav.lang a {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: var(--target);
+    min-height: var(--target);
+  }
 }
 .lang a[aria-current="page"] {
   font-weight: 700;
@@ -516,11 +532,9 @@ nav.lang li {
     margin-bottom: var(--sp-3);
   }
   nav.lang a {
-    display: flex;
-    align-items: center;
     justify-content: center;
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--target);
+    min-height: var(--target);
   }
 
   /* ---- sections: label over a hairline, then the content ---- */

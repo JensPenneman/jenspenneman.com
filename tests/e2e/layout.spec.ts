@@ -9,7 +9,9 @@ import { expect, test } from "@playwright/test";
  *    where the label sits in the gutter, one uniform gap below it where a
  *    phone stacks the two.
  *  - The rows that carry those hit areas keep them (>= 44px) and keep one
- *    pitch.
+ *    pitch, and so does the language switcher -- a row of controls, not
+ *    inline text, so 2.5.5 applies to it in full and its four targets have to
+ *    be 44x44 each without overlapping one another.
  *  - A label pins to the top of the viewport for the length of its own
  *    section on screen, and is never sticky in print.
  */
@@ -25,6 +27,9 @@ type Layout = {
   stacked: boolean[];
   links: { height: number; lineTop: number }[];
   contact: { height: number; lineTop: number }[];
+  lang: { width: number; height: number; left: number; right: number; textRight: number }[];
+  /** right edge of the sheet, which the switcher has to stay flush with */
+  sheetRight: number;
 };
 
 /** Runs in the page: `page.evaluate` ships the source, so this is self-contained. */
@@ -67,7 +72,17 @@ function measureLayout(): Layout {
     lineTop: firstLine(link),
   });
 
-  const layout: Layout = { ids: [], beside: [], below: [], stacked: [], links: [], contact: [] };
+  const round = (value: number) => Math.round(value * 100) / 100;
+  const layout: Layout = {
+    ids: [],
+    beside: [],
+    below: [],
+    stacked: [],
+    links: [],
+    contact: [],
+    lang: [],
+    sheetRight: round(document.querySelector(".sheet")?.getBoundingClientRect().right ?? 0),
+  };
   for (const section of document.querySelectorAll("section.row")) {
     const label = section.querySelector("h2");
     const content = section.children[1];
@@ -82,6 +97,18 @@ function measureLayout(): Layout {
   }
   for (const link of document.querySelectorAll("ul.links a")) layout.links.push(row(link));
   for (const link of document.querySelectorAll("address.contact a")) layout.contact.push(row(link));
+  for (const link of document.querySelectorAll("nav.lang a")) {
+    const box = link.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(link);
+    layout.lang.push({
+      width: round(box.width),
+      height: round(box.height),
+      left: round(box.left),
+      right: round(box.right),
+      textRight: round(range.getBoundingClientRect().right),
+    });
+  }
   return layout;
 }
 
@@ -165,6 +192,28 @@ test.describe("screen layout", () => {
       for (const [i, link] of layout.contact.entries())
         expect(link.height, `contact link ${i} target height`).toBeGreaterThanOrEqual(44);
     expect(spread(pitches(layout.contact.map((l) => l.lineTop)))).toBeLessThanOrEqual(TOLERANCE);
+  });
+
+  test("keeps every language switcher link a 44px target of its own", async ({ page }) => {
+    await page.goto("/nl-BE");
+    const layout = await page.evaluate(measureLayout);
+    expect(layout.lang).toHaveLength(4);
+    for (const [i, link] of layout.lang.entries()) {
+      expect(link.width, `language link ${i} target width`).toBeGreaterThanOrEqual(44);
+      expect(link.height, `language link ${i} target height`).toBeGreaterThanOrEqual(44);
+    }
+    /* an overlap would hand part of a link's area to its neighbour */
+    for (const [i, link] of layout.lang.slice(1).entries())
+      expect(link.left, `language links ${i} and ${i + 1} overlap`).toBeGreaterThanOrEqual(
+        layout.lang[i]?.right ?? 0,
+      );
+    /* and the row still ends flush with the content edge */
+    const last = layout.lang.at(-1);
+    expect(Math.abs((last?.right ?? 0) - layout.sheetRight)).toBeLessThanOrEqual(TOLERANCE);
+    if (layout.stacked[0] !== true)
+      /* where the code sits at the right of its cell, the letters are on the
+         content edge themselves (phones centre them instead) */
+      expect(Math.abs((last?.textRight ?? 0) - layout.sheetRight)).toBeLessThanOrEqual(TOLERANCE);
   });
 
   test("pins a section label for the length of its section", async ({ page }) => {
