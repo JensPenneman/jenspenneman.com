@@ -207,6 +207,59 @@ h2 {
   color: var(--gray);
 }
 
+/* ---------------- sticky section labels (screen only) ----------------
+ *
+ * Each label pins to the top of the viewport while its own section scrolls
+ * past, then leaves with it. The h2 is a grid item, so its sticky containing
+ * block is its grid area -- which spans the whole row -- and it therefore
+ * sticks for exactly the length of the section. `align-self: start` keeps it
+ * a self-sized box: a stretched item fills its area and can never move.
+ *
+ * On phones the label is stacked above the content, so there it also needs
+ * the opaque page ground and a layer above the text sliding underneath.
+ *
+ * Padding and margin cancel out: the opaque band (and the stuck hairline)
+ * clear the descenders without changing the row's height.
+ *
+ * The stuck state is a progressive enhancement: the h2 is a scroll-state
+ * query container and the hairline is its ::after, because a container can
+ * only style its own descendants. Browsers without scroll-state queries drop
+ * both the container-type and the @container block, and simply never paint
+ * the line -- the label still sticks. */
+
+@media screen {
+  html {
+    /* Keyboard focus and anchor jumps must clear a pinned label. Three lines
+       of a phone label measure 3.58rem (1.04rem each, plus the rule and its
+       padding) -- and because the whole page is set in rem, that holds at any
+       user font size. */
+    scroll-padding-top: 3.75rem;
+  }
+  .row > h2 {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    z-index: 1;
+    padding-bottom: calc(var(--pt) * 4);
+    margin-bottom: calc(var(--pt) * -4);
+    background: var(--bg);
+    container-type: scroll-state;
+  }
+  .row > h2::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    border-bottom: max(1px, calc(var(--pt) * var(--line-w))) solid var(--rule);
+    opacity: 0;
+  }
+  @container scroll-state(stuck: top) {
+    .row > h2::after {
+      opacity: 1;
+    }
+  }
+}
+
 /* ---------------- header ---------------- */
 
 .photo {
@@ -612,6 +665,12 @@ nav.lang li {
     text-decoration: underline;
     text-underline-offset: 0.15em;
   }
+
+  /* the label already sits on a hairline here, so the stuck state needs no
+     second one */
+  .row > h2::after {
+    content: none;
+  }
 }
 
 /* Increased contrast (macOS/iOS "Increase contrast", Android, Windows):
@@ -664,6 +723,9 @@ nav.lang li {
 @media screen and (forced-colors: active) {
   :root {
     --rule: CanvasText;
+  }
+  .row > h2 {
+    background: Canvas;
   }
   .pairs dd::before {
     border-bottom-color: CanvasText;
