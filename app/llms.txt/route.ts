@@ -1,16 +1,11 @@
 import { currentEmployer } from "@/lib/cv/currentEmployer";
 import { cvData } from "@/lib/cv/data";
-import { LOCALES, type Locale } from "@/lib/i18n/locales";
+import { endonym } from "@/lib/i18n/endonym";
+import { LOCALES } from "@/lib/i18n/locales";
 import { t } from "@/lib/i18n/localizedString";
 import { siteUrl } from "@/lib/seo/siteUrl";
 
 export const dynamic = "force-static";
-
-/** The language's own name for itself; the bare subtag carries the endonym,
- * because `of("nl-BE")` would answer "Vlaams". */
-function endonym(locale: Locale): string {
-  return new Intl.DisplayNames(locale, { type: "language" }).of(locale.slice(0, 2)) ?? locale;
-}
 
 /** /llms.txt (llmstxt.org): a Markdown summary of the site for AI agents,
  * generated from the data model. */

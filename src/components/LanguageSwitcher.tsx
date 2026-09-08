@@ -1,13 +1,7 @@
+import { endonym } from "@/lib/i18n/endonym";
 import { LOCALES, type Locale } from "@/lib/i18n/locales";
 
 type Props = { current: Locale; label: string };
-
-/** The language's own name for itself, capitalised the way that language
- * capitalises it (French writes "français" in lower case). The bare language
- * subtag is what carries the endonym: `of("nl-BE")` would answer "Vlaams". */
-function endonym(locale: Locale): string {
-  return new Intl.DisplayNames(locale, { type: "language" }).of(locale.slice(0, 2)) ?? locale;
-}
 
 /** Links to every locale of this page; the current one is marked. Screen only.
  *
