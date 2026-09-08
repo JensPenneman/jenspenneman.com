@@ -658,7 +658,12 @@ h3,
 
   /* ---- header ---- */
 
+  /* at a very large user font size 85pt of portrait is wider than a 320px
+     phone: cap it at the column and keep it round */
   .photo {
+    width: min(calc(var(--pt) * 85), 100%);
+    height: auto;
+    aspect-ratio: 1;
     margin-top: 0;
     margin-bottom: var(--sp-3);
   }
