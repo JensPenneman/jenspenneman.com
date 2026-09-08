@@ -454,6 +454,42 @@ h3,
   text-underline-offset: 0.15em;
 }
 
+/* ---------------- 40em and up: one continuous type ramp ----------------
+ *
+ * Above the phone layout the design unit grows with the viewport instead of
+ * stepping: three fixed steps used to run 11.88px body at 640, 12.6px from
+ * 1024 and 16.2px from 1600 -- smaller on a tablet than on a phone, and a
+ * 28.6% jump at a single pixel. `clamp()` on a rem-anchored ramp keeps it
+ * monotonic (13.5px at 640-768, 14.3 at 1024, 15.2 at 1280, 16.2 at 1600 and
+ * above) and still scales with the user's font size, because both ends of the
+ * clamp are rem. */
+
+@media screen and (min-width: 40em) {
+  .sheet {
+    --pt: clamp(0.09375rem, 0.0764rem + 0.036vw, 0.1125rem);
+    /* Everything here is set in rem, so a user stylesheet or Firefox's
+       text-only zoom grows the type while the window stays exactly where it
+       was: the columns get narrow, and a word that no longer fits one has to
+       fold rather than push the page sideways (WCAG 1.4.10). `break-word`
+       (not `anywhere`) splits a word only when it would not fit a line of its
+       own, so at every normal font size this never fires. The phone layout
+       carries the same rule for the same reason. */
+    overflow-wrap: break-word;
+    /* Same story for the label gutter: 141.7pt of rem at a 200% font size is
+       62% of a 640px sheet, which leaves the content column narrower than its
+       own headings. The cap stops the gutter growing before that; at every
+       normal font size it is far out of reach and the gutter is to the pixel
+       what it always was (it would first bind below 544px, where the phone
+       layout has long taken over). */
+    --col1: min(calc(var(--pt) * 141.7), 30vw);
+  }
+  /* the label gutter needs a gap of its own, or a text-spacing override brings
+     a label to within a few pixels of the content beside it */
+  .sheet h2 {
+    padding-right: calc(var(--pt) * 8);
+  }
+}
+
 /* ---------------- tablet: 40em-64em ---------------- */
 
 @media screen and (min-width: 40em) and (max-width: 63.99em) {
@@ -461,11 +497,7 @@ h3,
     padding: 2rem 1.25rem 3rem;
   }
   .sheet {
-    --pt: 0.0825rem;
-    --col1: calc(var(--pt) * 90);
-  }
-  .sheet h2 {
-    padding-right: calc(var(--pt) * 8);
+    --col1: min(calc(var(--pt) * 115), 30vw);
   }
 }
 
