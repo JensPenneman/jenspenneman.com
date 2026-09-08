@@ -8,7 +8,9 @@ type Props = { jobs: CvData["holidayJobs"]; labels: Labels };
 export function HolidayJobs({ jobs, labels }: Props) {
   return (
     <div className="job vak">
-      <p className="vaktitle">{labels.holidayJobs(jobs.count)}</p>
+      {/* a heading, like every other entry in the section: `.vak .vaktitle`
+          keeps the exact type it had as a paragraph */}
+      <h3 className="vaktitle">{labels.holidayJobs(jobs.count)}</h3>
       <p className="meta">{holidayJobsMeta(jobs, labels)}</p>
     </div>
   );

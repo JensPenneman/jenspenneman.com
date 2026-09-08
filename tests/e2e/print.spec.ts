@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 import { channelLinks } from "@/lib/cv/channelLinks";
 import { cvData } from "@/lib/cv/data";
+import { getLabels } from "@/lib/i18n/getLabels";
 import { LOCALES } from "@/lib/i18n/locales";
 import { occurrences, pdfLinkUris, pdfText } from "./pdfText";
 
@@ -11,7 +12,9 @@ const HEADROOM_PT = 12;
 const toPt = (px: number) => (px * 72) / 96;
 
 /** Website + the social profiles; the print stylesheet prints their URLs. */
-const CHANNEL_URLS = channelLinks(cvData.basics, "").map((link) => link.url);
+const CHANNEL_URLS = channelLinks(cvData.basics, getLabels("nl-BE").website).map(
+  (link) => link.url,
+);
 /** mailto, tel and one per channel: every link a printed page can carry over. */
 const EXPECTED_LINK_COUNT = 2 + CHANNEL_URLS.length;
 

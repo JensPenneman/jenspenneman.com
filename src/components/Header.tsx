@@ -35,7 +35,6 @@ export function Header({ basics, locale, labels }: Props) {
             height={photoSources.jpg.height}
             alt={`${labels.photoAlt} ${basics.name}`}
             fetchPriority="high"
-            decoding="sync"
           />
         </picture>
       </div>
@@ -49,8 +48,11 @@ export function Header({ basics, locale, labels }: Props) {
           <Separator />
           <a href={`tel:${basics.phone}`}>{phoneDisplay(basics.phone)}</a>
         </address>
+        {/* name and title are separate spans so each breaks by its own rules:
+            the surname stays whole, the compound job title may hyphenate */}
         <h1>
-          {basics.name}, {t(basics.label, locale)}
+          <span className="name">{basics.name},</span>{" "}
+          <span className="title">{t(basics.label, locale)}</span>
         </h1>
         <p className="intro">{t(basics.summary, locale)}</p>
       </div>

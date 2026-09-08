@@ -68,7 +68,7 @@
   :root {
     --gray: #555555;
     --dgray: #4a4a4a;
-    --rule: #c8c8c8;
+    --rule: #919191;
     /* AAA 2.5.5 minimum target size, and the padding a row of that height
        puts above its own text line. `lh` resolves against the element that
        uses it, so one token serves every breakpoint and user font size, and
@@ -81,7 +81,7 @@
     :root {
       --gray: lch(36.13% 0 0);
       --dgray: lch(33.53% 0 0);
-      --rule: lch(81.5% 0 0);
+      --rule: lch(60% 0 0);
     }
   }
 }
@@ -97,7 +97,7 @@
     --gray: #ababab;
     --dgray: #b8b8b8;
     --intro-ink: #dcdcdc;
-    --rule: #35373c;
+    --rule: #656569;
   }
   @supports (color: lch(50% 0 0)) {
     :root {
@@ -106,7 +106,7 @@
       --gray: lch(69.98% 0 0);
       --dgray: lch(74.78% 0 0);
       --intro-ink: lch(87.76% 0 0);
-      --rule: lch(24.5% 2.05 278.2);
+      --rule: lch(43% 2.05 278.2);
     }
   }
 }
@@ -177,10 +177,18 @@ body {
     row-gap: 0;
     margin-block: calc(var(--target-pad) * -1);
   }
+  /* The same trick horizontally: the hit area grows symmetrically around the
+     text and is pulled back out of the flow again, so every gap and every
+     letter stays exactly where it was while the target reaches 44x44 (2.5.5).
+     6pt a side covers the shortest label ("GitHub") at every band and stays
+     well inside the 24pt gutter between two links, so no two areas touch. */
   ul.links a {
     display: flex;
     align-items: center;
+    min-width: var(--target);
     min-height: var(--target);
+    padding-inline: calc(var(--pt) * 6);
+    margin-inline: calc(var(--pt) * -6);
   }
 }
 
@@ -196,7 +204,7 @@ section.row {
 header.head + section.row {
   margin-top: calc(var(--pt) * 51.7);
 }
-.sheet > section.row:last-of-type {
+.sheet section.row:last-of-type {
   margin-top: calc(var(--pt) * 30.8);
 }
 
@@ -235,7 +243,11 @@ h2 {
        user font size. */
     scroll-padding-top: 3.75rem;
   }
+  /* `scroll-padding-top` above clears a pinned label for every other focus
+     target; a jump to a section's own label wants no clearance at all -- the
+     label IS what pins to the top -- so it cancels the padding for itself. */
   .row > h2 {
+    scroll-margin-top: -3.75rem;
     position: sticky;
     top: 0;
     align-self: start;
@@ -298,6 +310,17 @@ h1 {
   line-height: 1.15;
   color: var(--ink);
   text-wrap: balance;
+}
+
+/* The name and the job title are two spans so each can break by its own
+   rules. A surname is never hyphenated and never split (the balanced h1 keeps
+   it whole); a compound job title -- German "Softwareentwickler" -- is, and
+   only hyphenation stops `overflow-wrap` from snapping it mid-morpheme at
+   320px with large text. Screen only: the printed h1 never wraps. */
+@media screen {
+  h1 .title {
+    hyphens: auto;
+  }
 }
 
 .intro {
@@ -386,10 +409,6 @@ h3,
 }
 
 .links {
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(2, auto);
-  grid-template-columns: calc(var(--pt) * 194.6) auto;
   justify-content: start;
   row-gap: calc(var(--pt) * 0.65);
   list-style: none;
@@ -454,6 +473,80 @@ h3,
   text-underline-offset: 0.15em;
 }
 
+/* ---------------- 40em and up: one continuous type ramp ----------------
+ *
+ * Above the phone layout the design unit grows with the viewport instead of
+ * stepping: three fixed steps used to run 11.88px body at 640, 12.6px from
+ * 1024 and 16.2px from 1600 -- smaller on a tablet than on a phone, and a
+ * 28.6% jump at a single pixel. `clamp()` on a rem-anchored ramp keeps it
+ * monotonic (13.5px at 640-768, 14.3 at 1024, 15.2 at 1280, 16.2 at 1600 and
+ * above) and still scales with the user's font size, because both ends of the
+ * clamp are rem. */
+
+@media screen and (min-width: 40em) {
+  .sheet {
+    --pt: clamp(0.09375rem, 0.0764rem + 0.036vw, 0.1125rem);
+    /* Everything here is set in rem, so a user stylesheet or Firefox's
+       text-only zoom grows the type while the window stays exactly where it
+       was: the columns get narrow, and a word that no longer fits one has to
+       fold rather than push the page sideways (WCAG 1.4.10). `break-word`
+       (not `anywhere`) splits a word only when it would not fit a line of its
+       own, so at every normal font size this never fires. The phone layout
+       carries the same rule for the same reason. */
+    overflow-wrap: break-word;
+    /* Same story for the label gutter: 141.7pt of rem at a 200% font size is
+       62% of a 640px sheet, which leaves the content column narrower than its
+       own headings. The cap stops the gutter growing before that; at every
+       normal font size it is far out of reach and the gutter is to the pixel
+       what it always was (it would first bind below 544px, where the phone
+       layout has long taken over). */
+    --col1: min(calc(var(--pt) * 141.7), 30vw);
+  }
+  /* the label gutter needs a gap of its own, or a text-spacing override brings
+     a label to within a few pixels of the content beside it */
+  .sheet h2 {
+    padding-right: calc(var(--pt) * 8);
+  }
+
+  /* ---- a two-column leader block is bounded by its column, not the window ----
+   *
+   * `.pairs.cols2` sets two leader columns of nowrap labels. What decides
+   * whether they fit is the width of the content column in units of its own
+   * text -- and a user stylesheet or Firefox's text-only zoom grows the text
+   * without touching the window, so a width media query cannot see it. The
+   * content column is therefore an inline-size container and the pairs ask it
+   * directly; below the threshold they fall back to the stacked, leaderless
+   * treatment the phone layout already uses. The h2 is a sibling of this
+   * container, not a descendant, so its sticky behaviour is untouched. */
+  .row > .content {
+    container: col / inline-size;
+  }
+
+  @container col (max-width: 30em) {
+    .pairs.cols2 {
+      display: block;
+    }
+    .pairs.cols2 .lr {
+      display: block;
+    }
+    .pairs.cols2 .lr + .lr {
+      margin-top: calc(var(--pt) * 9.65);
+    }
+    .pairs.cols2 dt {
+      font-size: calc(var(--pt) * 8);
+      white-space: normal;
+    }
+    .pairs.cols2 dd {
+      display: block;
+      margin-top: calc(var(--pt) * 3);
+      text-align: left;
+    }
+    .pairs.cols2 dd::before {
+      display: none;
+    }
+  }
+}
+
 /* ---------------- tablet: 40em-64em ---------------- */
 
 @media screen and (min-width: 40em) and (max-width: 63.99em) {
@@ -461,11 +554,7 @@ h3,
     padding: 2rem 1.25rem 3rem;
   }
   .sheet {
-    --pt: 0.0825rem;
-    --col1: calc(var(--pt) * 90);
-  }
-  .sheet h2 {
-    padding-right: calc(var(--pt) * 8);
+    --col1: min(calc(var(--pt) * 115), 30vw);
   }
 }
 
@@ -558,7 +647,7 @@ h3,
   }
   section.row,
   header.head + section.row,
-  .sheet > section.row:last-of-type {
+  .sheet section.row:last-of-type {
     margin-top: var(--sp-4);
   }
   /* the gray gutter has nowhere to go on one column, so the heading becomes a
@@ -580,7 +669,12 @@ h3,
 
   /* ---- header ---- */
 
+  /* at a very large user font size 85pt of portrait is wider than a 320px
+     phone: cap it at the column and keep it round */
   .photo {
+    width: min(calc(var(--pt) * 85), 100%);
+    height: auto;
+    aspect-ratio: 1;
     margin-top: 0;
     margin-bottom: var(--sp-3);
   }
@@ -785,13 +879,42 @@ h3,
   body {
     font-family: "Helvetica Neue", HelveticaNeue, Helvetica, Arial, sans-serif;
   }
-  /* labelled links print as their URL, exactly like the master */
+  /* labelled links print as their URL, exactly like the master. The anchor
+     itself must keep the height of that line: at `font-size: 0` it collapsed
+     to a zero-height box and the PDF exporter then emitted no /Link
+     annotation for it, so three of the five links in the printed CV were dead
+     -- same pixels, no URL. An inline-block of exactly one line box restores
+     them without moving anything. */
   .links a {
+    display: inline-block;
+    height: calc(var(--pt) * var(--fine) * 1.165);
+    vertical-align: top;
     font-size: 0;
   }
   .links a::after {
     content: attr(data-url);
     font-size: calc(var(--pt) * var(--fine));
+  }
+  /* The master sets the three links in two columns: website and LinkedIn on
+     the left, GitHub beside the first of them. `grid-auto-flow: column` used
+     to produce that by filling column-first, which makes the placement depend
+     on how many links there are and reads as Website, GitHub, LinkedIn.
+     Row flow with each link placed explicitly keeps the master's geometry to
+     the pixel while stating where every link goes. */
+  .links {
+    display: grid;
+    grid-auto-flow: row;
+    grid-template-rows: repeat(2, auto);
+    grid-template-columns: calc(var(--pt) * 194.6) auto;
+  }
+  .links li:nth-child(1) {
+    grid-area: 1 / 1;
+  }
+  .links li:nth-child(2) {
+    grid-area: 2 / 1;
+  }
+  .links li:nth-child(3) {
+    grid-area: 1 / 2;
   }
   body {
     background: #fff;

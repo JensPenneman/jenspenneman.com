@@ -80,9 +80,23 @@
   }
 
   /* Quicker than the 250ms default. The two documents differ only in
-     language, so anything longer reads as lag rather than as polish. */
+     language, so anything longer reads as lag rather than as polish.
+     `(root)` alone left the named `portrait` group on the UA default, so the
+     one element the transition is built around outlasted the page it sits in
+     by a full frame budget. The universal name matches every group the
+     transition creates -- the root, the portrait, and any named later -- and
+     the duration is set on all four pseudo-elements because the morph is
+     animated on the group while the cross-fade is on the old/new images.
+     The explicit `(root)` pair stays as the fallback for an engine that does
+     not accept `*` in these selectors and would drop the rule whole. */
   ::view-transition-old(root),
   ::view-transition-new(root) {
+    animation-duration: 180ms;
+  }
+  ::view-transition-group(*),
+  ::view-transition-image-pair(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
     animation-duration: 180ms;
   }
 }

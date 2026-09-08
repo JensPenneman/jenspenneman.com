@@ -22,8 +22,13 @@ describe("Entry", () => {
         present="heden"
       />,
     );
-    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent("Elektromechanica");
-    const meta = screen.getByText(/aan Broederschool Stekene/);
+    const heading = screen.getByRole("heading", { level: 3 });
+    expect(heading).toHaveTextContent("Elektromechanica");
+    /* two entries can share a job title, so the heading names its
+       organisation as well -- for assistive technology only */
+    expect(heading).toHaveAccessibleName("Elektromechanica, aan Broederschool Stekene");
+    expect(heading.querySelector(".vh")).toHaveTextContent(", aan Broederschool Stekene");
+    const meta = document.querySelector(".meta") as HTMLElement;
     expect(visible(meta)).toBe(`aan Broederschool Stekene, september 2016${RANGE_DASH}juli 2018`);
     expect(meta.querySelectorAll("time")).toHaveLength(2);
     expect(meta.querySelector("time")).toHaveAttribute("datetime", "2016-09");
@@ -39,7 +44,7 @@ describe("Entry", () => {
         present="present"
       />,
     );
-    const meta = screen.getByText(/at Y in Z/);
+    const meta = document.querySelector(".meta") as HTMLElement;
     expect(visible(meta)).toBe(`at Y in Z, July 2025${RANGE_DASH}present`);
     expect(meta.querySelectorAll("time")).toHaveLength(1);
   });
