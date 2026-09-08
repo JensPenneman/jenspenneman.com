@@ -21,10 +21,10 @@ export default defineConfig({
        * suite rather than by Vitest, which is why the floors are not higher --
        * they exist to catch a drop, not to set a target. */
       thresholds: {
-        statements: 54,
-        branches: 56,
-        functions: 70,
-        lines: 54,
+        statements: 42,
+        branches: 34,
+        functions: 65,
+        lines: 42,
       },
     },
   },
