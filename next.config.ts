@@ -1,5 +1,39 @@
 import type { NextConfig } from "next";
 
+const DENIED_FEATURES = [
+  "accelerometer",
+  "attribution-reporting",
+  "autoplay",
+  "bluetooth",
+  "browsing-topics",
+  "camera",
+  "compute-pressure",
+  "display-capture",
+  "encrypted-media",
+  "fullscreen",
+  "geolocation",
+  "gyroscope",
+  "hid",
+  "identity-credentials-get",
+  "idle-detection",
+  "local-fonts",
+  "magnetometer",
+  "microphone",
+  "midi",
+  "otp-credentials",
+  "payment",
+  "picture-in-picture",
+  "publickey-credentials-create",
+  "publickey-credentials-get",
+  "screen-wake-lock",
+  "serial",
+  "storage-access",
+  "usb",
+  "xr-spatial-tracking",
+];
+
+const PERMISSIONS_POLICY = DENIED_FEATURES.map((feature) => `${feature}=()`).join(", ");
+
 /* Response headers that do not depend on the request. The Content-Security-
  * Policy is per request (nonce) and therefore set in proxy.ts. */
 const securityHeaders = [
@@ -7,14 +41,20 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  {
-    key: "Permissions-Policy",
-    value:
-      "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()",
-  },
+  /* Deny every powerful feature: a CV reads text, it asks the browser for
+   * nothing. Names are the ones the engines actually parse today -- the old
+   * `interest-cohort` is gone with FLoC itself, and its successor
+   * (`browsing-topics`) plus the other post-2021 additions are denied here
+   * instead. Chrome logs "Unrecognized feature" for a name no engine parses,
+   * so the list holds only names it accepts today -- `ambient-light-sensor`
+   * and `web-share` are left out for exactly that reason. */
+  { key: "Permissions-Policy", value: PERMISSIONS_POLICY },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
+  /* Keyed on the origin alone, never on the site: the document can never be
+   * put in an agent cluster shared with another origin of jenspenneman.com. */
+  { key: "Origin-Agent-Cluster", value: "?1" },
 ];
 
 const immutable = [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }];
@@ -59,6 +99,14 @@ const nextConfig = {
       { source: "/(.*)", headers: securityHeaders },
       { source: "/img/(.*)", headers: immutable },
       { source: "/icons/(.*)", headers: immutable },
+      /* Next's metadata routes. Every reference to them carries the content
+       * hash as a query string, so the bytes at a given URL never change and
+       * the year is safe; manifest.webmanifest, referenced without one, is
+       * deliberately not in this list and keeps revalidating. */
+      { source: "/:locale/opengraph-image", headers: immutable },
+      { source: "/icon0.png", headers: immutable },
+      { source: "/icon1.svg", headers: immutable },
+      { source: "/apple-icon.png", headers: immutable },
     ];
   },
 
