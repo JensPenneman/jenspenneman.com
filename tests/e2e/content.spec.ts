@@ -148,13 +148,15 @@ test.describe("content", () => {
 
   test("sets each date range in typographic form", async ({ page }) => {
     await page.goto("/nl-BE");
-    /* lower-case Dutch month names, an en dash, no hyphen, and no wrap around it */
+    /* lower-case Dutch month names, an en dash, no hyphen; a line may break
+       after the dash but never before it */
     const first = await visibleText(page.locator(".jobs .meta").first());
     expect(first).toBe(`bij Advantitge te Deinze, juli 2025${RANGE_DASH}heden`);
     for (const meta of await page.locator(".jobs .meta, .opl .meta").all()) {
       const text = await visibleText(meta);
       expect(text).not.toMatch(/\d ?- ?\d/);
-      expect(text).not.toMatch(/\u0020\u2013|\u2013\u0020/);
+      expect(text).not.toMatch(/\u0020\u2013/);
+      expect(text).toMatch(/\u00a0\u2013\u0020/);
     }
     /* the range is still announced as a range, with a word instead of a dash */
     await expect(page.locator(".jobs .meta").first()).toContainText("tot heden");
