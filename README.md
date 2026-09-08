@@ -8,6 +8,7 @@ Jens's CV as a data-driven Next.js app on Vercel (npm, Node LTS via `.nvmrc`).
 app/            Next App Router: routes + metadata file conventions only
   [locale]/     root layout (html lang, JSON-LD, metadata), page, build-time OG card
   global-not-found.tsx  404 in the CV design with a link per language
+  llms.txt/route.ts     llmstxt.org summary, generated from the data model
   sitemap.ts robots.ts manifest.ts icon0.png icon1.svg apple-icon.png
 src/
   assets/       photo.jpg + the build-time OG card fonts
@@ -16,12 +17,17 @@ src/
   lib/cv/       typed data access + view-model derivations (one function per file)
   lib/format/   Intl-based, locale-aware formatters (one per file)
   lib/i18n/     locales, localized-string helper, labels + templates per locale
+  lib/nav/      the speculation-rules document rule
   lib/seo/      metadata, viewport, JSON-LD builder, site URL, page title
-  styles/       globals.css (the whole design)
-scripts/        images (prebuild), icons (manual), hooks (local git hooks), lighthouse (score gate)
-proxy.ts        per-request nonce CSP + Accept-Language negotiation for /
+  styles/       globals.css (the design) + platform.css (the platform
+                behaviours: bfcache, view transitions, safe areas, scrolling)
+scripts/        images (prebuild), icons (manual), hooks (local git hooks),
+                lighthouse (score gate), indexnow (search-engine ping)
+proxy.ts        per-request nonce CSP, Accept-Language negotiation, 404 rewrite
 tests/unit/     Vitest: formatters, i18n, data-model rules, SEO, components
-tests/e2e/      Playwright: content per locale, negotiation, axe WCAG AAA, security, print
+tests/e2e/      Playwright: a11y, bfcache, content, layout, platform, print,
+                security (+ pdfText.ts, a dependency-free reader for the
+                printed PDF)
 tests/visual/   Playwright screenshot baselines (macOS)
 ```
 
@@ -70,7 +76,8 @@ presentation and live in `src/lib/i18n/labels/<locale>.ts`.
 - Print (`--pt: 1pt`) reproduces the exact CV on A4 via the native browser
   print action, gradient wash included — verified against the PDF master.
 - Colors authored in HCL (CSS `lch()`, gradients `in lch`), sRGB fallbacks.
-- WCAG 2.2 AAA on screen (axe-audited in E2E): >= 7:1 contrast, 1.5 line
+- WCAG 2.2 AAA on screen (axe-audited in E2E, every level tag up to and
+  including `wcag22aaa`, plus axe's best practices): >= 7:1 contrast, 1.5 line
   spacing + no justification for paragraphs, >= 44px link targets, focus
   outlines, landmarks (`section[aria-labelledby]`), `dl` semantics, h1-h3.
 - Follows the system on screen only (print is always the light master):
@@ -78,7 +85,10 @@ presentation and live in `src/lib/i18n/labels/<locale>.ts`.
   more` — >= 15:1 inks, heavier leader lines, underlined links, thicker focus
   ring, light and dark variants) and Windows Contrast Themes
   (`forced-colors: active` — system-color roles, structure carried by borders
-  and underlines). All four combinations are axe-audited in E2E.
+  and underlines). Light, dark and both increased-contrast variants are
+  axe-audited in E2E, at 412, 768, 1280 and 1920px, on the CV pages and on the
+  404; forced colors is asserted structurally instead, because the colours
+  there are the operating system's and axe would be auditing the OS theme.
 
 ## SEO
 
@@ -101,10 +111,12 @@ go in the Vercel environment as `GOOGLE_SITE_VERIFICATION`,
   `instrumentation-client.ts`, loaded as its own chunk from an idle callback so
   the first paint never waits for it, reverse-proxied through `/pulse/*`
   rewrites so the CSP keeps `connect-src 'self'`; memory persistence,
-  anonymous-only, no session recording, exception autocapture on. `NEXT_PUBLIC_POSTHOG_KEY` (the
-  public project key) lives in the Vercel environment. Note: posthog-js drops
-  events from automation (headless UA, `navigator.webdriver`,
-  `userAgentData` brands), so headless probes never show captures.
+  anonymous-only, pageviews only — no session recording, no exception
+  autocapture — and Global Privacy Control is honoured.
+  `NEXT_PUBLIC_POSTHOG_KEY` (the public project key) lives in the Vercel
+  environment. Note: posthog-js drops events from automation (headless UA,
+  `navigator.webdriver`, `userAgentData` brands), so headless probes never
+  show captures.
 Scripts are inserted by nonced Next chunks, which the CSP's `strict-dynamic`
 permits.
 
@@ -146,12 +158,24 @@ standards, all progressive, all screen-only):
 
 ## Security
 
-`proxy.ts` sets a strict, **per-request nonce** Content-Security-Policy
+`proxy.ts` runs on every document request — its matcher skips Next
+internals, the `/pulse` analytics proxy, static files and the OG images, and
+deliberately includes prefetches announced with `Sec-Purpose`, so a prefetched
+document carries the policy it will be shown with. It negotiates
+`Accept-Language` on `/` and redirects (307) to the best locale with
+`Vary: Accept-Language`; rewrites an unknown first segment to a path no route
+matches, so `global-not-found` renders it while the status stays 404; answers
+anything but `GET`/`HEAD` with 405 and normalises the trailing slash; and sets
+`Cache-Control: private, max-age=0, must-revalidate` in place of Next's
+`no-store` (see Performance).
+
+It sets a strict, **per-request nonce** Content-Security-Policy
 (`default-src 'none'; script-src 'nonce-…' 'strict-dynamic'; style-src 'self'
 'nonce-…'; …; frame-ancestors 'none'`) and Next applies the nonce to every
 script and style it emits; `upgrade-insecure-requests` is added only over
 HTTPS. The remaining headers (HSTS with preload, nosniff, X-Frame-Options,
-Referrer-Policy, Permissions-Policy, COOP, CORP) come from `next.config.ts`.
+Referrer-Policy, Permissions-Policy, COOP, CORP,
+X-Permitted-Cross-Domain-Policies) come from `next.config.ts`.
 `/.well-known/security.txt` (RFC 9116) is in public/; the GitHub repository
 requires signed commits, CI and CodeQL on `main`. E2E asserts the policy and
 that pages load without a single CSP violation. After the first deploy on a
@@ -173,9 +197,17 @@ DS record is hPanel-only.
 ```sh
 npm install          # also installs the git hooks (lefthook)
 npm run dev          # Next dev server
-npm run check        # biome + tsc + knip + vitest  (what CI runs first)
-npm run test:e2e     # build, then Playwright against next start (Chromium, WebKit, mobile)
-npm run test:visual  # screenshot baselines (macOS; `test:visual:update` to re-record)
+npm run check        # biome + tsc + knip + vitest  (CI's quality job; the
+                     #   e2e, lighthouse and visual jobs all wait on it)
+npm run test:e2e     # build, then Playwright against next start: Chromium,
+                     #   WebKit and Pixel 7 run every spec; tablet (768) and
+                     #   big (1920) run the two whose subject is geometry,
+                     #   a11y and layout
+npm run test:visual  # screenshot baselines at 1920/1280/768/390 and in print,
+                     #   light and dark (macOS; `test:visual:update` re-records)
+PW_PORT=4194 …       # both Playwright suites serve the build on 4173; set
+                     #   PW_PORT to move the server (and the baseURL with it)
+                     #   when a second checkout is already using that port
 npm run lighthouse   # next start + audit every locale; fails below the score floors
 npm run build        # next build (prebuild generates the portrait variants)
 npm run start        # next start
@@ -187,5 +219,11 @@ npm run start        # next start
 - **lefthook** hooks: pre-commit = biome (staged) + typecheck, commit-msg =
   commitlint (Conventional Commits), pre-push = unit tests.
 - **TypeScript 7** at maximum strictness, **knip** for dead code/deps,
-  **Dependabot** weekly, **CI** runs the full pipeline incl. E2E and the
-  Lighthouse gate on Ubuntu, plus the visual baselines on macOS.
+  **Vitest** with coverage floors over `src/`, `app/` and `proxy.ts`.
+- **Dependabot** weekly; families (React, Next, Vitest, Playwright, Biome,
+  commitlint, Testing Library, ajv) are grouped, so even a major lands as one
+  pull request.
+- **CI** gates everything on `quality` and then runs, in parallel, E2E on
+  Ubuntu, the Lighthouse score floors, and the visual baselines on macOS.
+  The screenshot tolerance is 200 differing pixels (0.05%), not Playwright's
+  default 1%, which a whole removed row would have slipped through.
