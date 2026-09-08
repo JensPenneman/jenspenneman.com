@@ -263,13 +263,17 @@ test.describe("platform behaviours", () => {
     expect(authored.join(" ")).toContain("env(safe-area-inset-top");
   });
 
-  test("marks the portrait as the high-priority LCP image, decoded before first paint", async ({
+  test("marks the portrait as the high-priority LCP image and leaves decoding alone", async ({
     page,
   }) => {
     await page.goto("/nl-BE");
     const img = page.locator("img.photo");
     await expect(img).toHaveAttribute("fetchpriority", "high");
-    await expect(img).toHaveAttribute("decoding", "sync");
+    /* `decoding` stays unset: the default ("auto") lets the engine decode off
+       the main thread and paint when it is ready, which is what the priority
+       hint above is already asking it to hurry. `sync` only takes the choice
+       away and blocks the paint on the decode. */
+    expect(await img.getAttribute("decoding")).toBeNull();
   });
 
   test("keeps every platform behaviour off the printed page", async ({ page }) => {
