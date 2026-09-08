@@ -1,6 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { isLocale } from "@/lib/i18n/locales";
+import { DEFAULT_LOCALE, isLocale, LOCALES, type Locale } from "@/lib/i18n/locales";
 import { negotiateLocale } from "@/lib/i18n/negotiateLocale";
+
+/** The CSP violation collector (app/csp/route.ts). First party: the reports
+ * never leave the deployment. */
+const REPORT_PATH = "/csp";
+
+/** The only methods a document has an answer for; OPTIONS advertises them. */
+const ALLOW = "GET, HEAD";
 
 /** Per-request nonce: 128 random bits, base64. */
 function createNonce(): string {
@@ -19,40 +26,117 @@ function contentSecurityPolicy(nonce: string, https: boolean): string {
     "base-uri 'none'",
     "form-action 'none'",
     "frame-ancestors 'none'",
+    /* names the Reporting-Endpoints group below; reporting only, it grants
+     * nothing */
+    "report-to csp",
     ...(https ? ["upgrade-insecure-requests"] : []),
   ].join("; ");
 }
 
+/** A plain URL on this request's origin. NextURL (nextUrl.clone()) carries
+ * the request's own trailing-slash shape and puts it back when it is
+ * serialized, which would make the redirect below point at itself. */
+function to(request: NextRequest, pathname: string): URL {
+  const url = new URL(request.url);
+  url.pathname = pathname;
+  return url;
+}
+
+/** BCP 47 tags are case-insensitive (RFC 5646 2.1.1), so "/NL-be" names the
+ * same document as "/nl-BE" -- which is the spelling we publish. */
+function canonicalCasing(segment: string): Locale | undefined {
+  const lower = segment.toLowerCase();
+  return LOCALES.find((locale) => locale.toLowerCase() === lower);
+}
+
+/** "/nl" is not a URL of ours, but it unambiguously asks for the locale whose
+ * primary subtag it is. */
+function primarySubtagOf(segment: string): Locale | undefined {
+  const lower = segment.toLowerCase();
+  return LOCALES.find((locale) => locale.toLowerCase().split("-")[0] === lower);
+}
+
 export function proxy(request: NextRequest) {
   const { nextUrl } = request;
+  const { pathname } = nextUrl;
 
-  if (nextUrl.pathname === "/") {
+  /* The report collector is an API, not a document: it answers POST, needs no
+   * nonce of its own and must never be redirected -- a browser does not
+   * follow a redirect when delivering a report. */
+  if (pathname === REPORT_PATH) {
+    /* Next answers an unimplemented method on a route handler with a bare
+     * 405; RFC 9110 15.5.6 requires Allow on it. */
+    const response = NextResponse.next();
+    response.headers.set("Allow", "OPTIONS, POST");
+    return response;
+  }
+
+  /* A document is a read-only resource. Without this, Next answers a POST or
+   * a DELETE with 200 and the page, which tells a client its write succeeded. */
+  if (request.method === "OPTIONS") {
+    return new NextResponse(null, { status: 204, headers: { Allow: `${ALLOW}, OPTIONS` } });
+  }
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return new NextResponse(null, { status: 405, headers: { Allow: ALLOW } });
+  }
+
+  /* skipTrailingSlashRedirect (next.config.ts) keeps PostHog's own slashed
+   * endpoints intact under the /pulse/* rewrites, but it also switches off
+   * Next's redirect for the pages -- leaving "/nl-BE/" answering 200 next to
+   * "/nl-BE". One document, one URL: send the slashed spelling home. The
+   * rewrites are outside the matcher below, so they never reach this. */
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    return NextResponse.redirect(to(request, pathname.replace(/\/+$/, "") || "/"), 308);
+  }
+
+  if (pathname === "/") {
     const locale = negotiateLocale(request.headers.get("accept-language"));
-    const response = NextResponse.redirect(new URL(`/${locale}`, request.url), 307);
+    const response = NextResponse.redirect(to(request, `/${locale}`), 307);
     response.headers.set("Vary", "Accept-Language");
     return response;
+  }
+
+  const [, first = "", ...rest] = pathname.split("/");
+  if (!isLocale(first)) {
+    /* Same document, different spelling of the tag -- permanent. */
+    const canonical = canonicalCasing(first);
+    if (canonical) {
+      return NextResponse.redirect(to(request, ["", canonical, ...rest].join("/")), 308);
+    }
+    /* Which locale a bare subtag resolves to is ours to change (today "/nl"
+     * is Belgian Dutch, tomorrow it need not be) -- temporary. */
+    const primary = primarySubtagOf(first);
+    if (primary) {
+      return NextResponse.redirect(to(request, ["", primary, ...rest].join("/")), 307);
+    }
   }
 
   const nonce = createNonce();
   const https =
     nextUrl.protocol === "https:" || request.headers.get("x-forwarded-proto") === "https";
   const csp = contentSecurityPolicy(nonce, https);
+  const locale: Locale = isLocale(first) ? first : DEFAULT_LOCALE;
 
   /* Next reads the nonce from the request's CSP header and applies it to the
-   * scripts and styles it emits; x-nonce lets our own components read it. */
+   * scripts and styles it emits; x-nonce lets our own components read it.
+   * x-locale is how global-not-found.tsx -- which bypasses [locale] and so
+   * has no route params -- learns which language the URL asked for. */
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("content-security-policy", csp);
+  requestHeaders.set("x-locale", locale);
   const init = { request: { headers: requestHeaders } };
 
   /* A single unknown segment would match /[locale]; send it to a path no
    * route matches so global-not-found renders it (status stays 404). */
-  const [, first = ""] = nextUrl.pathname.split("/");
-  const response =
-    first && !isLocale(first)
-      ? NextResponse.rewrite(new URL(`/404${nextUrl.pathname}`, request.url), init)
-      : NextResponse.next(init);
+  const response = isLocale(first)
+    ? NextResponse.next(init)
+    : NextResponse.rewrite(new URL(`/404${pathname}`, request.url), init);
   response.headers.set("Content-Security-Policy", csp);
+  /* Where "report-to csp" sends a violation. Same origin, no third party. */
+  response.headers.set("Reporting-Endpoints", `csp="${REPORT_PATH}"`);
+  /* The document's own language, for clients that never parse the markup. */
+  response.headers.set("Content-Language", locale);
   /* Next answers a dynamic render with `private, no-cache, no-store,
    * max-age=0, must-revalidate`, and the `no-store` in there is what keeps
    * the document out of Firefox's back/forward cache: pressing Back re-runs
@@ -82,24 +166,14 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    {
-      /* everything except Next internals, the PostHog proxy, static files
-       * (anything with a dot) and the OG images; not router prefetches */
-      source: "/((?!_next/|pulse/|img/|icons/|\\.well-known/|.*opengraph-image|.*\\..*).*)",
-      missing: [
-        { type: "header", key: "next-router-prefetch" },
-        { type: "header", key: "purpose", value: "prefetch" },
-      ],
-    },
-    {
-      /* A speculation-rules prefetch (layout.tsx) is a real document request
-       * whose response is handed to the browser as the navigation itself, so
-       * it must carry a CSP. Chrome announces it with `Sec-Purpose: prefetch`
-       * and never with `purpose`, so the rule above already covers it; this
-       * entry keeps that true for any engine that sends both headers, because
-       * the alternative is one navigation served without a CSP. */
-      source: "/((?!_next/|pulse/|img/|icons/|\\.well-known/|.*opengraph-image|.*\\..*).*)",
-      has: [{ type: "header", key: "sec-purpose" }],
-    },
+    /* Everything except Next internals, the PostHog proxy, static files
+     * (anything with a dot) and the OG images.
+     *
+     * No `missing` clause on prefetch headers: this app renders no <Link>, so
+     * there are no RSC prefetches to exempt, and every engine spelling of a
+     * prefetch (`Purpose`, `Sec-Purpose`, `next-router-prefetch`) asks for a
+     * real document whose response becomes the navigation -- which must carry
+     * a CSP or the navigation lands unprotected. */
+    "/((?!_next/|pulse/|img/|icons/|\\.well-known/|.*opengraph-image|.*\\..*).*)",
   ],
 };
