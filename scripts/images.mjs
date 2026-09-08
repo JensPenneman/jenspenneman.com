@@ -6,7 +6,7 @@
  * (The committed PNG icons are produced by scripts/icons.mjs, on purpose not
  * at build time: libvips output differs across platforms byte for byte.) */
 import { createHash } from "node:crypto";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -15,6 +15,18 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const SRC = join(ROOT, "src/assets/photo.jpg");
 const PUBLIC_DIR = join(ROOT, "public/img");
 const MANIFEST_DIR = join(ROOT, "src/assets/generated");
+
+/* Idempotent: typecheck and build both run this, so skip the six encodes when
+ * the manifest is already newer than the photo and this script. */
+const MANIFEST = join(MANIFEST_DIR, "photo.json");
+if (
+  existsSync(MANIFEST) &&
+  statSync(MANIFEST).mtimeMs >= statSync(SRC).mtimeMs &&
+  statSync(MANIFEST).mtimeMs >= statSync(fileURLToPath(import.meta.url)).mtimeMs
+) {
+  console.log("images up to date");
+  process.exit(0);
+}
 
 rmSync(PUBLIC_DIR, { recursive: true, force: true });
 mkdirSync(PUBLIC_DIR, { recursive: true });

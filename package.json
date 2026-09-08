@@ -15,7 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "npm run build && playwright test --project=desktop --project=webkit --project=mobile",
+    "test:e2e": "npm run build && playwright test --project=desktop --project=webkit --project=mobile --project=tablet --project=big",
     "test:visual": "playwright test --project=visual",
     "test:visual:update": "playwright test --project=visual --update-snapshots",
     "lighthouse": "node scripts/lighthouse.mjs",
@@ -24,7 +24,8 @@
     "knip": "knip",
     "check": "npm run lint && npm run typecheck && npm run knip && npm run test",
     "prepare": "node scripts/hooks.mjs",
-    "indexnow": "node scripts/indexnow.mjs"
+    "indexnow": "node scripts/indexnow.mjs",
+    "pretypecheck": "node scripts/images.mjs"
   },
   "dependencies": {
     "next": "^16.3.4",
