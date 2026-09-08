@@ -27,9 +27,13 @@ export default async function Page({ params }: Params) {
   const { basics, work, holidayJobs, skills, education, certificates, languages } = cvData;
   return (
     <main className="stage">
-      <article className="wrap">
-        <div className="sheet">
-          <LanguageSwitcher current={locale} label={labels.language} />
+      {/* The switcher is page chrome, not part of the CV: kept inside the
+          sheet for its type scale and its alignment with the content edge,
+          but outside the <article>, so a reader mode extracts the CV rather
+          than four language codes followed by the CV. */}
+      <div className="wrap sheet">
+        <LanguageSwitcher current={locale} label={labels.language} />
+        <article>
           <Header basics={basics} locale={locale} labels={labels} />
 
           <Section id="personalia" heading={labels.personalia}>
@@ -80,8 +84,8 @@ export default async function Page({ params }: Params) {
           <Section id="kanalen" heading={labels.channels}>
             <ChannelLinks links={channelLinks(basics, labels.website)} />
           </Section>
-        </div>
-      </article>
+        </article>
+      </div>
     </main>
   );
 }

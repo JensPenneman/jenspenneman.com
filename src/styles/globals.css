@@ -204,7 +204,7 @@ section.row {
 header.head + section.row {
   margin-top: calc(var(--pt) * 51.7);
 }
-.sheet > section.row:last-of-type {
+.sheet section.row:last-of-type {
   margin-top: calc(var(--pt) * 30.8);
 }
 
@@ -636,7 +636,7 @@ h3,
   }
   section.row,
   header.head + section.row,
-  .sheet > section.row:last-of-type {
+  .sheet section.row:last-of-type {
     margin-top: var(--sp-4);
   }
   /* the gray gutter has nowhere to go on one column, so the heading becomes a
