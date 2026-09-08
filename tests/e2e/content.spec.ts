@@ -1,9 +1,19 @@
 import { readdirSync } from "node:fs";
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, test } from "@playwright/test";
 import { cvData } from "@/lib/cv/data";
+import { RANGE_DASH } from "@/lib/format/rangeDash";
 import { getLabels } from "@/lib/i18n/getLabels";
 import { LOCALES } from "@/lib/i18n/locales";
 import { pageTitle } from "@/lib/seo/pageTitle";
+
+/** The text a sighted reader sees: everything but the assistive-technology-only
+ * parts, which are in the DOM (and so in textContent) but never rendered. */
+const visibleText = (locator: Locator) =>
+  locator.evaluate((el) => {
+    const clone = el.cloneNode(true) as HTMLElement;
+    for (const hidden of clone.querySelectorAll(".vh")) hidden.remove();
+    return clone.textContent ?? "";
+  });
 
 test.describe("content", () => {
   for (const locale of LOCALES) {
@@ -22,9 +32,10 @@ test.describe("content", () => {
         "href",
         new RegExp(`/${locale}$`),
       );
+      /* x-default is the negotiating root, not the default language */
       await expect(page.locator(`link[rel="alternate"][hreflang="x-default"]`)).toHaveAttribute(
         "href",
-        /\/nl-BE$/,
+        /^https?:\/\/[^/]+\/?$/,
       );
       for (const l of LOCALES) {
         await expect(page.locator(`link[rel="alternate"][hreflang="${l}"]`)).toHaveAttribute(
@@ -118,6 +129,44 @@ test.describe("content", () => {
     expect(text.startsWith(`# ${cvData.basics.name}`)).toBe(true);
     expect(text).toContain("> ");
     for (const locale of LOCALES) expect(text).toContain(`/${locale})`);
+    /* each page is named by the language's own name for itself, plus its tag */
+    expect(text).toContain("[Nederlands (nl-BE)]");
+    expect(text).toContain("[English (en-GB)]");
+    expect(text).toContain("[français (fr-BE)]");
+    expect(text).toContain("[Deutsch (de-BE)]");
+  });
+
+  test("dates the sitemap from the content and offers an x-default", async ({ request }) => {
+    const res = await request.get("/sitemap.xml");
+    expect(res.status()).toBe(200);
+    const xml = await res.text();
+    expect(xml).toContain(`<lastmod>${cvData.updated}</lastmod>`);
+    expect(xml).not.toContain("changefreq");
+    expect(xml).not.toContain("priority");
+    expect(xml).toMatch(/hreflang="x-default"/);
+  });
+
+  test("sets each date range in typographic form", async ({ page }) => {
+    await page.goto("/nl-BE");
+    /* lower-case Dutch month names, an en dash, no hyphen, and no wrap around it */
+    const first = await visibleText(page.locator(".jobs .meta").first());
+    expect(first).toBe(`bij Advantitge te Deinze, juli 2025${RANGE_DASH}heden`);
+    for (const meta of await page.locator(".jobs .meta, .opl .meta").all()) {
+      const text = await visibleText(meta);
+      expect(text).not.toMatch(/\d ?- ?\d/);
+      expect(text).not.toMatch(/\u0020\u2013|\u2013\u0020/);
+    }
+    /* the range is still announced as a range, with a word instead of a dash */
+    await expect(page.locator(".jobs .meta").first()).toContainText("tot heden");
+  });
+
+  test("names every link on its own, without changing what is shown", async ({ page }) => {
+    await page.goto("/nl-BE");
+    const website = page.getByRole("link", { name: `Website van ${cvData.basics.name}` });
+    await expect(website).toHaveAttribute("href", cvData.basics.url);
+    expect(await visibleText(website)).toBe("Website");
+    expect(await visibleText(page.getByRole("link", { name: "NL Nederlands" }))).toBe("NL");
+    await expect(page.getByRole("link", { name: "FR français" })).toHaveAttribute("href", "/fr-BE");
   });
 
   test("serves the IndexNow key file", async ({ request }) => {

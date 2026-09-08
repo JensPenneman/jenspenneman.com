@@ -8,15 +8,19 @@ import { familyName, givenName } from "./personName";
 /* ProfilePage + nested Person: Google's recommended shape for personal
  * profiles. sameAs disambiguates via canonical profiles; image and
  * dateModified are the recommended extras. The Person @id is shared by all
- * locales: one person, four pages. */
-export function buildJsonLd(cv: CvData, locale: Locale, photoUrl: URL, today: Date, base: URL) {
+ * locales: one person, four pages.
+ *
+ * `_today` is the render date; it is deliberately unused. dateModified must
+ * say when the CV last changed (cv.json `updated`) -- a page rendered today
+ * from last month's data was not modified today. */
+export function buildJsonLd(cv: CvData, locale: Locale, photoUrl: URL, _today: Date, base: URL) {
   const employer = currentEmployer(cv.work);
   return {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
     url: new URL(`/${locale}`, base).href,
     inLanguage: locale,
-    dateModified: today.toISOString().slice(0, 10),
+    dateModified: cv.updated,
     mainEntity: {
       "@type": "Person",
       "@id": new URL("#person", base).href,
@@ -37,7 +41,8 @@ export function buildJsonLd(cv: CvData, locale: Locale, photoUrl: URL, today: Da
       telephone: cv.basics.phone,
       url: cv.basics.url,
       birthPlace: { "@type": "Place", name: cv.basics.birth.place },
-      nationality: { "@type": "Country", name: t(cv.basics.nationality, locale) },
+      /* schema.org wants the country, not the demonym (the country name, not "Belg") */
+      nationality: { "@type": "Country", name: t(cv.basics.location.country, locale) },
       knowsLanguage: cv.languages.map((l) => t(l.language, locale)),
       knowsAbout: cv.skills.flatMap((s) => s.keywords),
       ...(employer && { worksFor: { "@type": "Organization", name: employer.name } }),

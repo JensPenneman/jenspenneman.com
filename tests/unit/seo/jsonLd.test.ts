@@ -20,14 +20,25 @@ describe("buildJsonLd", () => {
     const fr = buildJsonLd(cvData, "fr-BE", new URL("/photo.jpg", base), new Date(), base);
     expect(fr.mainEntity["@id"]).toBe(ld.mainEntity["@id"]);
     expect(fr.mainEntity.jobTitle).toBe("Ingénieur logiciel");
-    expect(ld.dateModified).toBe("2026-09-02");
+  });
+
+  it("dates the profile from the content, not from the render", () => {
+    expect(ld.dateModified).toBe(cvData.updated);
+    expect(ld.dateModified).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    const later = buildJsonLd(cvData, "nl-BE", new URL("/photo.jpg", base), new Date(), base);
+    expect(later.dateModified).toBe(ld.dateModified);
   });
 
   it("carries Google's recommended disambiguation fields", () => {
     expect(ld.mainEntity.sameAs).toEqual(cvData.basics.profiles.map((p) => p.url));
     expect(ld.mainEntity.image).toBe("https://example.test/photo.jpg");
     expect(ld.mainEntity.worksFor).toEqual({ "@type": "Organization", name: "Advantitge" });
-    expect(ld.mainEntity.nationality).toEqual({ "@type": "Country", name: "Belg" });
+  });
+
+  it("names a country as the nationality, not a demonym", () => {
+    expect(ld.mainEntity.nationality).toEqual({ "@type": "Country", name: "België" });
+    const en = buildJsonLd(cvData, "en-GB", new URL("/photo.jpg", base), new Date(), base);
+    expect(en.mainEntity.nationality).toEqual({ "@type": "Country", name: "Belgium" });
   });
 
   it("is serialisable without loss", () => {
