@@ -386,10 +386,6 @@ h3,
 }
 
 .links {
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(2, auto);
-  grid-template-columns: calc(var(--pt) * 194.6) auto;
   justify-content: start;
   row-gap: calc(var(--pt) * 0.65);
   list-style: none;
@@ -855,13 +851,42 @@ h3,
   body {
     font-family: "Helvetica Neue", HelveticaNeue, Helvetica, Arial, sans-serif;
   }
-  /* labelled links print as their URL, exactly like the master */
+  /* labelled links print as their URL, exactly like the master. The anchor
+     itself must keep the height of that line: at `font-size: 0` it collapsed
+     to a zero-height box and the PDF exporter then emitted no /Link
+     annotation for it, so three of the five links in the printed CV were dead
+     -- same pixels, no URL. An inline-block of exactly one line box restores
+     them without moving anything. */
   .links a {
+    display: inline-block;
+    height: calc(var(--pt) * var(--fine) * 1.165);
+    vertical-align: top;
     font-size: 0;
   }
   .links a::after {
     content: attr(data-url);
     font-size: calc(var(--pt) * var(--fine));
+  }
+  /* The master sets the three links in two columns: website and LinkedIn on
+     the left, GitHub beside the first of them. `grid-auto-flow: column` used
+     to produce that by filling column-first, which makes the placement depend
+     on how many links there are and reads as Website, GitHub, LinkedIn.
+     Row flow with each link placed explicitly keeps the master's geometry to
+     the pixel while stating where every link goes. */
+  .links {
+    display: grid;
+    grid-auto-flow: row;
+    grid-template-rows: repeat(2, auto);
+    grid-template-columns: calc(var(--pt) * 194.6) auto;
+  }
+  .links li:nth-child(1) {
+    grid-area: 1 / 1;
+  }
+  .links li:nth-child(2) {
+    grid-area: 2 / 1;
+  }
+  .links li:nth-child(3) {
+    grid-area: 1 / 2;
   }
   body {
     background: #fff;
