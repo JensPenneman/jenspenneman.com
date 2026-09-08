@@ -51,7 +51,7 @@ describe("Certificates", () => {
       />,
     );
     expect(de.container.textContent).toBe(
-      "Instruktor (2024) und Hauptanimator (2022) ausgestellt von KLJ und der Flämischen Regierung",
+      "Instruktor (2024) und Hauptanimator (2022) von KLJ und der Flämischen Regierung",
     );
   });
   it("separates two issuers with the locale's list separator", () => {

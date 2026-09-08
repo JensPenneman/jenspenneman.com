@@ -38,7 +38,7 @@ describe("locales", () => {
     expect(getLabels("fr-BE").issuedBy(1)).toBe("délivré par");
     expect(getLabels("fr-BE").issuedBy(2)).toBe("délivrés par");
     expect(getLabels("nl-BE").issuedBy(2)).toBe("uitgereikt door");
-    expect(getLabels("de-BE").issuedBy(2)).toBe("ausgestellt von");
+    expect(getLabels("de-BE").issuedBy(2)).toBe("von");
     expect(getLabels("en-GB").issuedBy(2)).toBe("issued by");
   });
 });

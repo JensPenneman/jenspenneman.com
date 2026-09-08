@@ -19,7 +19,7 @@ export const labels: Labels = {
   until: "bis",
   and: "und",
   listSeparator: "; ",
-  issuedBy: () => "ausgestellt von",
+  issuedBy: () => "von",
   holidayJobs: (count) => `+\u00a0${count} Ferienjobs`,
   workOrg: (company, city) => `bei ${company} in ${city}`,
   /* dative after "an": feminine "an der", masculine and neuter contract to "am" */

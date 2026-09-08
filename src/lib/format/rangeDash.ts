@@ -4,4 +4,4 @@
  * it keeps the one break opportunity typography allows, so a wrapped range
  * continues cleanly on the next line ("september 2020 –" / "december 2023")
  * instead of carrying a leading space over. */
-export const RANGE_DASH = " – ";
+export const RANGE_DASH = "\u00a0\u2013 ";
