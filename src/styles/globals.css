@@ -488,6 +488,44 @@ h3,
   .sheet h2 {
     padding-right: calc(var(--pt) * 8);
   }
+
+  /* ---- a two-column leader block is bounded by its column, not the window ----
+   *
+   * `.pairs.cols2` sets two leader columns of nowrap labels. What decides
+   * whether they fit is the width of the content column in units of its own
+   * text -- and a user stylesheet or Firefox's text-only zoom grows the text
+   * without touching the window, so a width media query cannot see it. The
+   * content column is therefore an inline-size container and the pairs ask it
+   * directly; below the threshold they fall back to the stacked, leaderless
+   * treatment the phone layout already uses. The h2 is a sibling of this
+   * container, not a descendant, so its sticky behaviour is untouched. */
+  .row > .content {
+    container: col / inline-size;
+  }
+
+  @container col (max-width: 30em) {
+    .pairs.cols2 {
+      display: block;
+    }
+    .pairs.cols2 .lr {
+      display: block;
+    }
+    .pairs.cols2 .lr + .lr {
+      margin-top: calc(var(--pt) * 9.65);
+    }
+    .pairs.cols2 dt {
+      font-size: calc(var(--pt) * 8);
+      white-space: normal;
+    }
+    .pairs.cols2 dd {
+      display: block;
+      margin-top: calc(var(--pt) * 3);
+      text-align: left;
+    }
+    .pairs.cols2 dd::before {
+      display: none;
+    }
+  }
 }
 
 /* ---------------- tablet: 40em-64em ---------------- */
