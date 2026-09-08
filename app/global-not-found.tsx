@@ -1,7 +1,6 @@
 import "@/styles/globals.css";
 import type { Metadata } from "next";
-import { SpeedInsights } from "@/components/SpeedInsights";
-import { WebAnalytics } from "@/components/WebAnalytics";
+import { AnalyticsScripts } from "@/components/AnalyticsScripts";
 import { getLabels } from "@/lib/i18n/getLabels";
 import { DEFAULT_LOCALE, LOCALES } from "@/lib/i18n/locales";
 import { viewport as seoViewport } from "@/lib/seo/viewport";
@@ -43,8 +42,7 @@ export default function GlobalNotFound() {
             </div>
           </article>
         </main>
-        <WebAnalytics />
-        <SpeedInsights />
+        <AnalyticsScripts />
       </body>
     </html>
   );

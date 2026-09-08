@@ -4,9 +4,8 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import photo from "@/assets/photo.jpg";
+import { AnalyticsScripts } from "@/components/AnalyticsScripts";
 import { JsonLd } from "@/components/JsonLd";
-import { SpeedInsights } from "@/components/SpeedInsights";
-import { WebAnalytics } from "@/components/WebAnalytics";
 import { cvData } from "@/lib/cv/data";
 import { isLocale, LOCALES } from "@/lib/i18n/locales";
 import { speculationRules } from "@/lib/nav/speculationRules";
@@ -53,8 +52,7 @@ export default async function LocaleLayout({
           dangerouslySetInnerHTML={{ __html: speculationRules(locale) }}
         />
         {children}
-        <WebAnalytics />
-        <SpeedInsights />
+        <AnalyticsScripts />
       </body>
     </html>
   );

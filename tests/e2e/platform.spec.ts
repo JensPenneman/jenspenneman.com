@@ -169,6 +169,23 @@ test.describe("platform behaviours", () => {
     expect(name === "" || name === "none").toBe(true);
   });
 
+  test("answers a Global Privacy Control request with a document that measures nothing", async ({
+    request,
+  }) => {
+    /* Vercel's two measurement scripts exist only on Vercel, so their absence
+       here is not by itself evidence; the gate is unit-tested where VERCEL can
+       be stubbed (tests/unit/components/AnalyticsScripts.test.tsx). What this
+       pins is that a Sec-GPC request is still answered with the whole CV --
+       the signal removes measurement, not content. */
+    const response = await request.get("/nl-BE", { headers: { "Sec-GPC": "1" } });
+    expect(response.status()).toBe(200);
+    const html = await response.text();
+    expect(html).not.toContain("/_vercel/insights");
+    expect(html).not.toContain("/_vercel/speed-insights");
+    expect(html).toContain("speculationrules");
+    expect(html).toContain("application/ld+json");
+  });
+
   test("declares viewport-fit cover and pads the body with the safe-area insets", async ({
     page,
   }) => {
