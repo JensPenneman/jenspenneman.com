@@ -68,7 +68,7 @@
   :root {
     --gray: #555555;
     --dgray: #4a4a4a;
-    --rule: #c8c8c8;
+    --rule: #919191;
     /* AAA 2.5.5 minimum target size, and the padding a row of that height
        puts above its own text line. `lh` resolves against the element that
        uses it, so one token serves every breakpoint and user font size, and
@@ -81,7 +81,7 @@
     :root {
       --gray: lch(36.13% 0 0);
       --dgray: lch(33.53% 0 0);
-      --rule: lch(81.5% 0 0);
+      --rule: lch(60% 0 0);
     }
   }
 }
@@ -97,7 +97,7 @@
     --gray: #ababab;
     --dgray: #b8b8b8;
     --intro-ink: #dcdcdc;
-    --rule: #35373c;
+    --rule: #656569;
   }
   @supports (color: lch(50% 0 0)) {
     :root {
@@ -106,7 +106,7 @@
       --gray: lch(69.98% 0 0);
       --dgray: lch(74.78% 0 0);
       --intro-ink: lch(87.76% 0 0);
-      --rule: lch(24.5% 2.05 278.2);
+      --rule: lch(43% 2.05 278.2);
     }
   }
 }
