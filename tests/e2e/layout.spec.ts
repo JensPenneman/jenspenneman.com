@@ -25,7 +25,15 @@ type Layout = {
   below: number[];
   /** the label is stacked above its content instead of beside it, per section */
   stacked: boolean[];
-  links: { height: number; lineTop: number }[];
+  links: {
+    height: number;
+    width: number;
+    lineTop: number;
+    textLeft: number;
+    textRight: number;
+  }[];
+  /** the gutter `ul.links` puts between two channel links */
+  linksGap: number;
   contact: { height: number; lineTop: number }[];
   lang: { width: number; height: number; left: number; right: number; textRight: number }[];
   /** right edge of the sheet, which the switcher has to stay flush with */
@@ -71,6 +79,13 @@ function measureLayout(): Layout {
     height: Math.round(link.getBoundingClientRect().height * 100) / 100,
     lineTop: firstLine(link),
   });
+  const round2 = (value: number) => Math.round(value * 100) / 100;
+  const textBox = (link: Element) => {
+    const range = document.createRange();
+    range.selectNodeContents(link);
+    const rect = range.getBoundingClientRect();
+    return { textLeft: round2(rect.left), textRight: round2(rect.right) };
+  };
 
   const round = (value: number) => Math.round(value * 100) / 100;
   const layout: Layout = {
@@ -81,6 +96,9 @@ function measureLayout(): Layout {
     links: [],
     contact: [],
     lang: [],
+    linksGap: Number.parseFloat(
+      getComputedStyle(document.querySelector("ul.links") as Element).columnGap,
+    ),
     sheetRight: round(document.querySelector(".sheet")?.getBoundingClientRect().right ?? 0),
   };
   for (const section of document.querySelectorAll("section.row")) {
@@ -95,7 +113,12 @@ function measureLayout(): Layout {
       content.getBoundingClientRect().top >= label.getBoundingClientRect().bottom - 1,
     );
   }
-  for (const link of document.querySelectorAll("ul.links a")) layout.links.push(row(link));
+  for (const link of document.querySelectorAll("ul.links a"))
+    layout.links.push({
+      ...row(link),
+      width: round(link.getBoundingClientRect().width),
+      ...textBox(link),
+    });
   for (const link of document.querySelectorAll("address.contact a")) layout.contact.push(row(link));
   for (const link of document.querySelectorAll("nav.lang a")) {
     const box = link.getBoundingClientRect();
@@ -181,9 +204,24 @@ test.describe("screen layout", () => {
     await page.goto("/nl-BE");
     const layout = await page.evaluate(measureLayout);
     expect(layout.links).toHaveLength(3);
-    for (const [i, link] of layout.links.entries())
+    for (const [i, link] of layout.links.entries()) {
       expect(link.height, `channel link ${i} target height`).toBeGreaterThanOrEqual(44);
+      /* 2.5.5 asks for 44 in BOTH directions, and "GitHub" is a 37px word */
+      expect(link.width, `channel link ${i} target width`).toBeGreaterThanOrEqual(44);
+    }
     expect(spread(pitches(layout.links.map((l) => l.lineTop)))).toBeLessThanOrEqual(TOLERANCE);
+
+    /* the width comes from padding that is pulled straight back out again, so
+       the type has not moved: consecutive labels are still exactly the list's
+       own gutter apart, and the first one still starts on the content edge */
+    if (layout.stacked[0] !== true)
+      for (const [i, link] of layout.links.slice(1).entries()) {
+        const gap = Math.round((link.textLeft - (layout.links[i]?.textRight ?? 0)) * 100) / 100;
+        expect(
+          Math.abs(gap - layout.linksGap),
+          `channel links ${i} and ${i + 1} are ${gap}px apart, not ${layout.linksGap}px`,
+        ).toBeLessThanOrEqual(TOLERANCE);
+      }
 
     /* phones stack the contact details into rows of their own; wider screens
        set them as one sentence, where 2.5.5 exempts the links inside it */

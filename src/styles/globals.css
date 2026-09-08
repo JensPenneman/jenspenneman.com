@@ -177,10 +177,18 @@ body {
     row-gap: 0;
     margin-block: calc(var(--target-pad) * -1);
   }
+  /* The same trick horizontally: the hit area grows symmetrically around the
+     text and is pulled back out of the flow again, so every gap and every
+     letter stays exactly where it was while the target reaches 44x44 (2.5.5).
+     6pt a side covers the shortest label ("GitHub") at every band and stays
+     well inside the 24pt gutter between two links, so no two areas touch. */
   ul.links a {
     display: flex;
     align-items: center;
+    min-width: var(--target);
     min-height: var(--target);
+    padding-inline: calc(var(--pt) * 6);
+    margin-inline: calc(var(--pt) * -6);
   }
 }
 
