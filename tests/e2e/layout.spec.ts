@@ -49,15 +49,45 @@ function measureLayout(): Layout {
     const lineHeight = Number.parseFloat(getComputedStyle(parent).lineHeight);
     return Number.isNaN(lineHeight) ? 0 : (lineHeight - rect.height) / 2;
   };
+  /* Text that exists only for assistive technology -- the `.vh` spans that
+     name an entry's organisation, or anything hidden from the accessibility
+     tree -- is absolutely positioned, clipped to a pixel and pulled out of
+     the flow. Its boxes sit wherever its static position happens to fall
+     (centred inside a flex anchor, say), so unioning them with the visible
+     run puts a "text box" nowhere near the type a reader sees, and two
+     neighbouring links then measure as overlapping. Every measurement here
+     is about where type is SEEN, so this walker never leaves that text. */
+  const ASSISTIVE_ONLY = '.vh, [aria-hidden="true"], [hidden]';
   const textNodes = (root: Element) => {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-      acceptNode: (node) =>
-        node.nodeValue?.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT,
+      acceptNode: (node) => {
+        if (!node.nodeValue?.trim()) return NodeFilter.FILTER_REJECT;
+        return node.parentElement?.closest(ASSISTIVE_ONLY)
+          ? NodeFilter.FILTER_REJECT
+          : NodeFilter.FILTER_ACCEPT;
+      },
     });
     const nodes: Text[] = [];
     for (let node = walker.nextNode(); node !== null; node = walker.nextNode())
       nodes.push(node as Text);
     return nodes;
+  };
+  /* the horizontal run of the visible text inside an element: the union of
+     the boxes of its own text nodes, never a Range over the whole element */
+  const textSpan = (root: Element) => {
+    let left = Number.POSITIVE_INFINITY;
+    let right = Number.NEGATIVE_INFINITY;
+    for (const node of textNodes(root)) {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      for (const rect of range.getClientRects()) {
+        if (rect.width === 0 && rect.height === 0) continue;
+        left = Math.min(left, rect.left);
+        right = Math.max(right, rect.right);
+      }
+    }
+    if (!Number.isFinite(left)) throw new Error("expected visible text");
+    return { left, right };
   };
   const edge = (node: Text | undefined, side: "top" | "bottom") => {
     const parent = node?.parentElement;
@@ -81,10 +111,8 @@ function measureLayout(): Layout {
   });
   const round2 = (value: number) => Math.round(value * 100) / 100;
   const textBox = (link: Element) => {
-    const range = document.createRange();
-    range.selectNodeContents(link);
-    const rect = range.getBoundingClientRect();
-    return { textLeft: round2(rect.left), textRight: round2(rect.right) };
+    const span = textSpan(link);
+    return { textLeft: round2(span.left), textRight: round2(span.right) };
   };
 
   const round = (value: number) => Math.round(value * 100) / 100;
@@ -122,14 +150,12 @@ function measureLayout(): Layout {
   for (const link of document.querySelectorAll("address.contact a")) layout.contact.push(row(link));
   for (const link of document.querySelectorAll("nav.lang a")) {
     const box = link.getBoundingClientRect();
-    const range = document.createRange();
-    range.selectNodeContents(link);
     layout.lang.push({
       width: round(box.width),
       height: round(box.height),
       left: round(box.left),
       right: round(box.right),
-      textRight: round(range.getBoundingClientRect().right),
+      textRight: round(textSpan(link).right),
     });
   }
   return layout;
