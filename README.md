@@ -105,8 +105,9 @@ go in the Vercel environment as `GOOGLE_SITE_VERIFICATION`,
 `BING_SITE_VERIFICATION` and `YANDEX_VERIFICATION` (rendered as meta tags when set).
 
 **Analytics** (all cookieless, so no consent banner):
-- Vercel Web Analytics (`@vercel/analytics`), rendered only on Vercel.
-- Vercel Speed Insights (`@vercel/speed-insights`), Core Web Vitals per route,
+- Vercel Web Analytics, as one nonced `<script>` tag (`/_vercel/insights/script.js`),
+  rendered only on Vercel.
+- Vercel Speed Insights, the same way (`/_vercel/speed-insights/script.js`), Core Web Vitals per route,
   rendered only on Vercel; reports to a same-origin endpoint (`connect-src 'self'`).
 - PostHog (open source, EU cloud, project `jenspenneman.com`) via
   `instrumentation-client.ts`, loaded as its own chunk from an idle callback so
@@ -199,7 +200,7 @@ DS record is hPanel-only.
 ## Developing
 
 ```sh
-npm install          # also installs the git hooks (lefthook)
+npm install          # also installs the git hooks (lefthook); images are generated before typecheck/build
 npm run dev          # Next dev server
 npm run check        # biome + tsc + knip + vitest  (CI's quality job; the
                      #   e2e, lighthouse and visual jobs all wait on it)
