@@ -169,6 +169,52 @@ test.describe("platform behaviours", () => {
     expect(name === "" || name === "none").toBe(true);
   });
 
+  test("skips the view transition once the reader has scrolled", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "cross-document view transitions: Chromium and Safari");
+    await page.addInitScript(() => {
+      const revealed: boolean[] = [];
+      (window as unknown as { __revealed: boolean[] }).__revealed = revealed;
+      addEventListener("pagereveal", (event) => {
+        revealed.push((event as { viewTransition?: unknown }).viewTransition != null);
+      });
+    });
+    /* Playwright scrolls an element into view before clicking it, and the
+       language switch sits at the very top of the document -- clicking it
+       through the harness would scroll back to the top and undo the premise.
+       Activating the link from inside the page navigates from wherever the
+       reader actually is. */
+    const switchTo = async (locale: string) => {
+      await page
+        .evaluate((target) => {
+          document.querySelector<HTMLAnchorElement>(`nav.lang a[href="/${target}"]`)?.click();
+        }, locale)
+        .catch(() => {
+          /* the navigation can tear the execution context down first */
+        });
+      await page.waitForURL(new RegExp(`/${locale}$`));
+      await page.waitForLoadState("load");
+    };
+    const revealed = () =>
+      page.evaluate(() => (window as unknown as { __revealed: boolean[] }).__revealed);
+
+    await page.goto("/nl-BE", { waitUntil: "load" });
+    await page.evaluate(() => scrollTo({ top: document.body.scrollHeight, behavior: "instant" }));
+    expect(await page.evaluate(() => scrollY), "the CV is long enough to scroll").toBeGreaterThan(
+      0,
+    );
+    await switchTo("en-GB");
+    /* The incoming document always starts at the top, so from anywhere else
+       the cross-fade blends two unrelated regions of the CV. Skipped in
+       `pageswap`, the transition never reaches the new document at all and
+       `pagereveal` carries no ViewTransition. */
+    expect(await revealed()).toEqual([false]);
+
+    /* Control, same activation path: from the top the transition still runs,
+       so what the test above observed is the scroll and not the click. */
+    await switchTo("fr-BE");
+    expect(await revealed()).toEqual([true]);
+  });
+
   test("answers a Global Privacy Control request with a document that measures nothing", async ({
     request,
   }) => {
