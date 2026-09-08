@@ -5,10 +5,24 @@
   "description": "Pure data model for the CV (JSON Resume-inspired). Dates are ISO (YYYY-MM or YYYY-MM-DD), phone is E.164; human-language fields are localized objects with all four locales; all presentation (labels, date formatting, joining) is derived by the UI.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["basics", "work", "holidayJobs", "skills", "education", "certificates", "languages"],
+  "required": [
+    "updated",
+    "basics",
+    "work",
+    "holidayJobs",
+    "skills",
+    "education",
+    "certificates",
+    "languages"
+  ],
   "properties": {
     "$schema": {
       "type": "string"
+    },
+    "updated": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the CV content last changed (YYYY-MM-DD). Drives JSON-LD dateModified and the sitemap's lastmod."
     },
     "basics": {
       "type": "object",
@@ -17,6 +31,7 @@
         "name",
         "label",
         "summary",
+        "metaDescription",
         "email",
         "phone",
         "url",
@@ -39,6 +54,10 @@
           "$ref": "#/$defs/localized",
           "description": "Intro paragraph under the name"
         },
+        "metaDescription": {
+          "$ref": "#/$defs/localizedMeta",
+          "description": "Search-result / social description; kept short enough not to be truncated"
+        },
         "email": {
           "type": "string",
           "format": "email"
@@ -50,7 +69,8 @@
         },
         "url": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "pattern": "^https://"
         },
         "location": {
           "type": "object",
@@ -68,7 +88,8 @@
             },
             "countryCode": {
               "type": "string",
-              "pattern": "^[A-Z]{2}$"
+              "enum": ["BE"],
+              "description": "ISO 3166-1 alpha-2; the localized country name lives in `country`"
             },
             "country": {
               "$ref": "#/$defs/localized"
@@ -81,9 +102,28 @@
         "driversLicense": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "AM",
+              "A1",
+              "A2",
+              "A",
+              "B",
+              "BE",
+              "C1",
+              "C1E",
+              "C",
+              "CE",
+              "D1",
+              "D1E",
+              "D",
+              "DE",
+              "G"
+            ],
+            "description": "EU driving-licence category"
           },
-          "minItems": 1
+          "minItems": 1,
+          "uniqueItems": true
         },
         "birth": {
           "type": "object",
@@ -97,6 +137,7 @@
         },
         "profiles": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "object",
             "additionalProperties": false,
@@ -107,7 +148,8 @@
               },
               "url": {
                 "type": "string",
-                "format": "uri"
+                "format": "uri",
+                "pattern": "^https://"
               }
             }
           }
@@ -199,13 +241,18 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["studyType", "institution", "startDate", "endDate"],
+        "required": ["studyType", "institution", "institutionGender", "startDate", "endDate"],
         "properties": {
           "studyType": {
             "$ref": "#/$defs/localized"
           },
           "institution": {
             "type": "string"
+          },
+          "institutionGender": {
+            "type": "string",
+            "enum": ["m", "f", "n"],
+            "description": "Grammatical gender of the institution name's head noun, for languages that decline the preposition (German: an der / am)"
           },
           "startDate": {
             "$ref": "#/$defs/yearMonth"
@@ -218,6 +265,7 @@
     },
     "certificates": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -272,6 +320,23 @@
           "type": "null"
         }
       ]
+    },
+    "localizedMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nl-BE", "en-GB", "fr-BE", "de-BE"],
+      "description": "Localized string kept within the ~155 characters search engines show",
+      "properties": {
+        "nl-BE": { "$ref": "#/$defs/metaString" },
+        "en-GB": { "$ref": "#/$defs/metaString" },
+        "fr-BE": { "$ref": "#/$defs/metaString" },
+        "de-BE": { "$ref": "#/$defs/metaString" }
+      }
+    },
+    "metaString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 155
     },
     "localized": {
       "type": "object",

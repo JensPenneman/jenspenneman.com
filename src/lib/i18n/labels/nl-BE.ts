@@ -1,3 +1,4 @@
+import { RANGE_DASH } from "@/lib/format/rangeDash";
 import type { Labels } from "../labelsType";
 
 export const labels: Labels = {
@@ -12,15 +13,18 @@ export const labels: Labels = {
   certificates: "Cursussen (geattesteerd)",
   languages: "Talen",
   channels: "Andere informatiekanalen",
-  website: "Website",
+  website: { label: "Website", owner: (name) => `van ${name}` },
   photoAlt: "Portretfoto van",
   present: "heden",
+  until: "tot",
   and: "en",
-  by: "bij",
-  holidayJobs: (count) => `+ ${count} vakantiejobs`,
+  listSeparator: "; ",
+  issuedBy: () => "uitgereikt door",
+  holidayJobs: (count) => `+\u00a0${count} vakantiejobs`,
   workOrg: (company, city) => `bij ${company} te ${city}`,
-  educationOrg: (institution) => `bij ${institution}`,
-  holidayJobsMeta: (companies, startYear, endYear) => `bij ${companies} ${startYear} - ${endYear}`,
+  educationOrg: (institution) => `aan ${institution}`,
+  holidayJobsMeta: (companies, startYear, endYear) =>
+    `bij ${companies} ${startYear}${RANGE_DASH}${endYear}`,
   notFoundTitle: "Pagina niet gevonden",
   notFoundText: "Deze pagina bestaat niet.",
   notFoundBack: "Naar het CV",

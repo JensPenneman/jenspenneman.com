@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cvData } from "@/lib/cv/data";
-import { DEFAULT_LOCALE, LOCALES, type Locale, ogLocale } from "@/lib/i18n/locales";
+import { LOCALES, type Locale, ogLocale } from "@/lib/i18n/locales";
 import { t } from "@/lib/i18n/localizedString";
 import { pageTitle } from "./pageTitle";
 import { familyName, givenName } from "./personName";
@@ -20,23 +20,22 @@ function verification(): Metadata["verification"] {
 
 export function buildMetadata(locale: Locale): Metadata {
   const title = pageTitle(locale);
-  const description = t(cvData.basics.summary, locale);
+  /* the intro paragraph runs past what a search result shows; the data
+     model carries its own short description for that. */
+  const description = t(cvData.basics.metaDescription, locale);
   const languages = Object.fromEntries(LOCALES.map((l) => [l, `/${l}`]));
   return {
     metadataBase: siteUrl,
     title,
     description,
-    keywords: [
-      cvData.basics.name,
-      t(cvData.basics.label, locale),
-      ...cvData.skills.flatMap((s) => s.keywords),
-    ],
     authors: [{ name: cvData.basics.name, url: cvData.basics.url }],
     creator: cvData.basics.name,
     publisher: cvData.basics.name,
     alternates: {
       canonical: `/${locale}`,
-      languages: { ...languages, "x-default": `/${DEFAULT_LOCALE}` },
+      /* x-default is the negotiating root, not a language: proxy.ts sends
+         "/" to the best match for the reader's Accept-Language. */
+      languages: { ...languages, "x-default": "/" },
     },
     verification: verification(),
     referrer: "strict-origin-when-cross-origin",
@@ -55,7 +54,7 @@ export function buildMetadata(locale: Locale): Metadata {
     openGraph: {
       type: "profile",
       url: `/${locale}`,
-      siteName: title,
+      siteName: siteUrl.host,
       locale: ogLocale(locale),
       alternateLocale: LOCALES.filter((l) => l !== locale).map(ogLocale),
       title,

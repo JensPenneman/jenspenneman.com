@@ -1,11 +1,16 @@
 import { currentEmployer } from "@/lib/cv/currentEmployer";
 import { cvData } from "@/lib/cv/data";
-import { getLabels } from "@/lib/i18n/getLabels";
-import { LOCALES } from "@/lib/i18n/locales";
+import { LOCALES, type Locale } from "@/lib/i18n/locales";
 import { t } from "@/lib/i18n/localizedString";
 import { siteUrl } from "@/lib/seo/siteUrl";
 
 export const dynamic = "force-static";
+
+/** The language's own name for itself; the bare subtag carries the endonym,
+ * because `of("nl-BE")` would answer "Vlaams". */
+function endonym(locale: Locale): string {
+  return new Intl.DisplayNames(locale, { type: "language" }).of(locale.slice(0, 2)) ?? locale;
+}
 
 /** /llms.txt (llmstxt.org): a Markdown summary of the site for AI agents,
  * generated from the data model. */
@@ -14,7 +19,7 @@ export function GET() {
   const employer = currentEmployer(cvData.work);
   const pages = LOCALES.map(
     (locale) =>
-      `- [${getLabels(locale).language}: ${t(basics.label, locale)}](${new URL(`/${locale}`, siteUrl).href}): ${t(basics.summary, locale)}`,
+      `- [${endonym(locale)} (${locale})](${new URL(`/${locale}`, siteUrl).href}): ${t(basics.summary, locale)}`,
   );
   const body = [
     `# ${basics.name}`,
