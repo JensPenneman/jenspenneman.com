@@ -14,7 +14,14 @@ type Props = {
 export function Entry({ title, org, start, end, locale, present }: Props) {
   return (
     <div className="job">
-      <h3>{title}</h3>
+      {/* Two entries share the title "Full stack software engineer"; heard on
+          their own in a list of headings they are indistinguishable, so each
+          heading names its organisation for assistive technology. It is the
+          same string the meta line below repeats visually. */}
+      <h3>
+        {title}
+        <span className="vh">, {org}</span>
+      </h3>
       <p className="meta">
         {org}, <Period start={start} end={end} locale={locale} present={present} />
       </p>
