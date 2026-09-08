@@ -40,8 +40,15 @@ Four locales at BCP 47 paths: `/nl-BE` (default), `/en-GB`, `/fr-BE`, `/de-BE`.
 Each page carries its own `lang`, title/description, canonical, `hreflang`
 alternates (+ `x-default`), `og:locale`, JSON-LD `inLanguage` and sitemap
 alternates. The root `/` is negotiated from `Accept-Language` (q-values honoured) in
-`proxy.ts`, which redirects to the best locale with `Vary: Accept-Language`.
+`proxy.ts`, which redirects to the best locale with `Vary: Accept-Language`;
+mis-cased tags (`/NL-be`) redirect to the canonical spelling and a bare
+language (`/nl`) to its locale. Every page answers with `Content-Language`.
 UI strings and composition templates live in `src/lib/i18n/labels/<locale>.ts`.
+Typography follows each language: month names as ICU cases them (lower case
+in Dutch and French), ranges set with an en dash that keeps a no-break space
+before it so a line never starts with the dash, lists joined with
+`Intl.ListFormat`, language names from `Intl.DisplayNames`
+(`src/lib/i18n/endonym.ts`), French apostrophes as U+2019.
 
 ## Editing the CV
 
@@ -98,7 +105,8 @@ canonical + hreflang, robots (+googleBot), Open Graph `profile` with a
 **build-time generated 1200x630 card** (`app/[locale]/opengraph-image.tsx`,
 rendered with TeX Gyre Heros — a free Helvetica clone used only at build time),
 Twitter card, icons, `manifest.webmanifest`, `sitemap.xml`, `robots.txt`,
-JSON-LD `ProfilePage`/`Person`. Search engines: `npm run indexnow` pings
+JSON-LD `ProfilePage`/`Person`, plus a classic `/favicon.ico` for the
+crawlers and readers that still request it blindly. Search engines: `npm run indexnow` pings
 Bing/Yandex/Seznam/Naver (IndexNow; key file in public/) after a production
 deploy; Google only takes the sitemap via Search Console. Verification tokens
 go in the Vercel environment as `GOOGLE_SITE_VERIFICATION`,
@@ -151,6 +159,8 @@ standards, all progressive, all screen-only):
 - Cross-document view transitions for the language switch
   (`@view-transition { navigation: auto }`, the portrait morphs), smooth
   fragment scrolling, all inside `prefers-reduced-motion: no-preference`.
+- The page function runs in Frankfurt (`vercel.json` `regions: ["fra1"]`),
+  next to the audience, instead of Vercel's default US region.
 - `viewport-fit: cover` with safe-area padding,
   `touch-action: manipulation` on links, the portrait as high-priority LCP
   image decoded before first paint. Rejected after research (documented in
