@@ -27,8 +27,10 @@ function contentSecurityPolicy(nonce: string, https: boolean): string {
     "form-action 'none'",
     "frame-ancestors 'none'",
     /* names the Reporting-Endpoints group below; reporting only, it grants
-     * nothing */
+     * nothing. WebKit still delivers only through the legacy report-uri, so
+     * both directives point at the same first-party endpoint. */
     "report-to csp",
+    "report-uri /csp",
     ...(https ? ["upgrade-insecure-requests"] : []),
   ].join("; ");
 }

@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 const CSP =
-  /^default-src 'none'; script-src 'nonce-([A-Za-z0-9+/=]+)' 'strict-dynamic'; style-src 'self' 'nonce-\1'; img-src 'self'; manifest-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; report-to csp$/;
+  /^default-src 'none'; script-src 'nonce-([A-Za-z0-9+/=]+)' 'strict-dynamic'; style-src 'self' 'nonce-\1'; img-src 'self'; manifest-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; report-to csp; report-uri \/csp$/;
 
 const HEADERS: Record<string, string | RegExp> = {
   "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
