@@ -5,9 +5,13 @@ import type { CvData } from "./data";
 import type { Pair } from "./pair";
 
 export function personaliaPairs(basics: CvData["basics"], locale: Locale, labels: Labels): Pair[] {
+  /* "AM en B" / "AM and B" / "AM et B" / "AM und B" */
+  const licences = new Intl.ListFormat(locale, { type: "conjunction" }).format(
+    basics.driversLicense,
+  );
   return [
     { label: labels.nationality, value: t(basics.nationality, locale) },
-    { label: labels.license, value: basics.driversLicense.join(", ") },
+    { label: labels.license, value: licences },
     { label: labels.birthPlace, value: basics.birth.place },
   ];
 }

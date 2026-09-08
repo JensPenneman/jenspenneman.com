@@ -6,20 +6,21 @@ import { t } from "@/lib/i18n/localizedString";
 
 type Props = { certificates: readonly Certificate[]; locale: Locale; labels: Labels };
 
-/** One line: "Instructeur (2024) en Hoofdanimator (2022) bij KLJ en de Vlaamse Overheid" */
+/** One line: "Instructeur (2024) en Hoofdanimator (2022) uitgereikt door KLJ
+ * en de Vlaamse Overheid" */
 export function Certificates({ certificates, locale, labels }: Props) {
   return (
     <p className="course">
       {certificateGroups(certificates, locale).map((group, gi) => (
         <span key={group.issuer}>
-          {gi > 0 && "; "}
+          {gi > 0 && labels.listSeparator}
           {group.certificates.map((c, i) => (
             <span key={t(c.name, locale)}>
               {i > 0 && ` ${labels.and} `}
               <strong>{t(c.name, locale)}</strong> ({c.date.slice(0, 4)})
             </span>
           ))}
-          {` ${labels.by} ${group.issuer}`}
+          {` ${labels.issuedBy(group.certificates.length)} ${group.issuer}`}
         </span>
       ))}
     </p>

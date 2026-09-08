@@ -1,3 +1,4 @@
+import { RANGE_DASH } from "@/lib/format/rangeDash";
 import type { Labels } from "../labelsType";
 
 export const labels: Labels = {
@@ -12,15 +13,19 @@ export const labels: Labels = {
   certificates: "Kurse (zertifiziert)",
   languages: "Sprachen",
   channels: "Weitere Kanäle",
-  website: "Website",
+  website: { label: "Website", owner: (name) => `von ${name}` },
   photoAlt: "Porträtfoto von",
   present: "heute",
+  until: "bis",
   and: "und",
-  by: "bei",
-  holidayJobs: (count) => `+ ${count} Ferienjobs`,
+  listSeparator: "; ",
+  issuedBy: () => "ausgestellt von",
+  holidayJobs: (count) => `+\u00a0${count} Ferienjobs`,
   workOrg: (company, city) => `bei ${company} in ${city}`,
-  educationOrg: (institution) => `bei ${institution}`,
-  holidayJobsMeta: (companies, startYear, endYear) => `bei ${companies} ${startYear} - ${endYear}`,
+  /* dative after "an": feminine "an der", masculine and neuter contract to "am" */
+  educationOrg: (institution, gender) => `${gender === "f" ? "an der" : "am"} ${institution}`,
+  holidayJobsMeta: (companies, startYear, endYear) =>
+    `bei ${companies} ${startYear}${RANGE_DASH}${endYear}`,
   notFoundTitle: "Seite nicht gefunden",
   notFoundText: "Diese Seite existiert nicht.",
   notFoundBack: "Zurück zum Lebenslauf",

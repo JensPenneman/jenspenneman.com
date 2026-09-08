@@ -1,3 +1,4 @@
+import { RANGE_DASH } from "@/lib/format/rangeDash";
 import type { Labels } from "../labelsType";
 
 export const labels: Labels = {
@@ -12,16 +13,21 @@ export const labels: Labels = {
   certificates: "Cours (certifiés)",
   languages: "Langues",
   channels: "Autres canaux",
-  website: "Site web",
+  website: { label: "Site web", owner: (name) => `de ${name}` },
   photoAlt: "Photo portrait de",
-  present: "aujourd'hui",
+  present: "aujourd’hui",
+  until: "à",
   and: "et",
-  by: "chez",
-  holidayJobs: (count) => `+ ${count} jobs d'étudiant`,
+  /* the French semicolon takes a narrow no-break space in front of it
+     (Lexique des règles typographiques en usage à l’Imprimerie nationale) */
+  listSeparator: "\u202f; ",
+  issuedBy: (count) => (count > 1 ? "délivrés par" : "délivré par"),
+  holidayJobs: (count) => `+\u00a0${count} jobs d’étudiant`,
   workOrg: (company, city) => `chez ${company} à ${city}`,
   educationOrg: (institution) => `à ${institution}`,
-  holidayJobsMeta: (companies, startYear, endYear) => `chez ${companies} ${startYear} - ${endYear}`,
+  holidayJobsMeta: (companies, startYear, endYear) =>
+    `chez ${companies} ${startYear}${RANGE_DASH}${endYear}`,
   notFoundTitle: "Page introuvable",
-  notFoundText: "Cette page n'existe pas.",
+  notFoundText: "Cette page n’existe pas.",
   notFoundBack: "Retour au CV",
 };

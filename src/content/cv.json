@@ -1,5 +1,6 @@
 {
   "$schema": "./cv.schema.json",
+  "updated": "2026-09-09",
   "basics": {
     "name": "Jens Penneman",
     "label": {
@@ -11,8 +12,14 @@
     "summary": {
       "nl-BE": "Full-stack software engineer met 4 jaar ervaring. Ik bouw dashboards, klantenportalen en koppelingen met externe diensten, van database tot pixel-perfecte interface.",
       "en-GB": "Full-stack software engineer with 4 years of experience. I build dashboards, customer portals and integrations with external services, from database to pixel-perfect interface.",
-      "fr-BE": "Ingénieur logiciel full-stack avec 4 ans d'expérience. Je conçois des tableaux de bord, des portails clients et des intégrations avec des services externes, de la base de données à l'interface au pixel près.",
+      "fr-BE": "Ingénieur logiciel full-stack avec 4 ans d’expérience. Je conçois des tableaux de bord, des portails clients et des intégrations avec des services externes, de la base de données à l’interface au pixel près.",
       "de-BE": "Full-Stack-Softwareentwickler mit 4 Jahren Erfahrung. Ich baue Dashboards, Kundenportale und Anbindungen an externe Dienste, von der Datenbank bis zur pixelgenauen Oberfläche."
+    },
+    "metaDescription": {
+      "nl-BE": "Full-stack software engineer uit Stekene met 4 jaar ervaring: dashboards, klantenportalen en koppelingen met externe diensten.",
+      "en-GB": "Full-stack software engineer in Belgium with 4 years of experience: dashboards, customer portals and integrations with external services.",
+      "fr-BE": "Ingénieur logiciel full-stack en Belgique, 4 ans d’expérience : tableaux de bord, portails clients et intégrations de services externes.",
+      "de-BE": "Full-Stack-Softwareentwickler in Belgien mit 4 Jahren Erfahrung: Dashboards, Kundenportale und Anbindungen an externe Dienste."
     },
     "email": "jenspenneman26@gmail.com",
     "phone": "+32474180683",
@@ -165,6 +172,7 @@
         "de-BE": "Angewandte Informatik"
       },
       "institution": "Hogeschool Gent",
+      "institutionGender": "f",
       "startDate": "2020-09",
       "endDate": "2023-12"
     },
@@ -176,6 +184,7 @@
         "de-BE": "Industrielle Informatik & Kommunikationstechnik"
       },
       "institution": "GTI Beveren",
+      "institutionGender": "n",
       "startDate": "2018-09",
       "endDate": "2020-07"
     },
@@ -187,6 +196,7 @@
         "de-BE": "Elektromechanik"
       },
       "institution": "Broederschool Stekene",
+      "institutionGender": "f",
       "startDate": "2016-09",
       "endDate": "2018-07"
     }
@@ -204,7 +214,7 @@
         "nl-BE": "KLJ en de Vlaamse Overheid",
         "en-GB": "KLJ and the Flemish Government",
         "fr-BE": "KLJ et le Gouvernement flamand",
-        "de-BE": "KLJ und die Flämische Regierung"
+        "de-BE": "KLJ und der Flämischen Regierung"
       }
     },
     {
@@ -219,7 +229,7 @@
         "nl-BE": "KLJ en de Vlaamse Overheid",
         "en-GB": "KLJ and the Flemish Government",
         "fr-BE": "KLJ et le Gouvernement flamand",
-        "de-BE": "KLJ und die Flämische Regierung"
+        "de-BE": "KLJ und der Flämischen Regierung"
       }
     }
   ],
