@@ -13,7 +13,46 @@ updates:
     # which a bad release can be yanked before it reaches main
     cooldown:
       default-days: 3
+    # A dependency joins the first group it matches, so the families come
+    # first: they carry no update-types and therefore hold for majors too,
+    # which is the point -- a package and its own types/plugins/runner have to
+    # move in one PR or the tree does not build. What is left over falls
+    # through to minor-and-patch (majors of ungrouped packages get their own
+    # PR, as before).
     groups:
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+      playwright:
+        patterns:
+          - "@playwright/test"
+          - "playwright"
+          - "@axe-core/playwright"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      next:
+        patterns:
+          - "next"
+          - "@next/*"
+          - "eslint-config-next"
+      commitlint:
+        patterns:
+          - "@commitlint/*"
+      testing-library:
+        patterns:
+          - "@testing-library/*"
+      ajv:
+        patterns:
+          - "ajv"
+          - "ajv-formats"
+      biome:
+        patterns:
+          - "@biomejs/*"
       minor-and-patch:
         update-types: ["minor", "patch"]
     open-pull-requests-limit: 5

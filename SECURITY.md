@@ -1,5 +1,10 @@
 # Security policy
 
+Machine-readable summary:
+[`/.well-known/security.txt`](https://jenspenneman.com/.well-known/security.txt)
+(RFC 9116) — it carries the same contact address and is the canonical entry
+point for automated scanners.
+
 ## Supported versions
 
 Only the `main` branch is supported; it is what is deployed. There are no

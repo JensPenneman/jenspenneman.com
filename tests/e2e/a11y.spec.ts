@@ -1,23 +1,44 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { LOCALES } from "@/lib/i18n/locales";
+
+/* The design claims WCAG 2.2 AAA, so every level tag up to and including AAA
+ * is audited -- 2.1 AAA and 2.2 AAA included -- plus axe's best practices. */
+const TAGS = [
+  "wcag2a",
+  "wcag2aa",
+  "wcag2aaa",
+  "wcag21a",
+  "wcag21aa",
+  "wcag21aaa",
+  "wcag22aa",
+  "wcag22aaa",
+  "best-practice",
+];
+
+const violations = async (page: Page) =>
+  (await new AxeBuilder({ page }).withTags(TAGS).analyze()).violations;
+
+type Media = Parameters<Page["emulateMedia"]>[0];
+
+/* Every colour mode the stylesheet answers to, except forced-colors: the
+ * system supplies those colours, so auditing them audits the OS theme. */
+const MODES: ReadonlyArray<{ name: string; media: Media }> = [
+  { name: "light", media: {} },
+  { name: "dark", media: { colorScheme: "dark" } },
+  { name: "increased contrast", media: { contrast: "more" } },
+  { name: "increased contrast, dark", media: { contrast: "more", colorScheme: "dark" } },
+];
+
+/* Both shapes of 404: an unknown first segment (rewritten by proxy.ts) and an
+ * unknown segment under a real locale (no route matches). */
+const NOT_FOUND = ["/does-not-exist", "/fr-BE/does-not-exist"];
 
 test.describe("accessibility", () => {
   for (const locale of LOCALES) {
     test(`passes axe at WCAG 2.2 AAA plus best practices (${locale})`, async ({ page }) => {
       await page.goto(`/${locale}`);
-      const results = await new AxeBuilder({ page })
-        .withTags([
-          "wcag2a",
-          "wcag2aa",
-          "wcag2aaa",
-          "wcag21a",
-          "wcag21aa",
-          "wcag22aa",
-          "best-practice",
-        ])
-        .analyze();
-      expect(results.violations).toEqual([]);
+      expect(await violations(page)).toEqual([]);
     });
   }
 
@@ -26,18 +47,7 @@ test.describe("accessibility", () => {
     await page.goto("/nl-BE");
     const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     expect(bg).not.toBe("rgb(255, 255, 255)");
-    const results = await new AxeBuilder({ page })
-      .withTags([
-        "wcag2a",
-        "wcag2aa",
-        "wcag2aaa",
-        "wcag21a",
-        "wcag21aa",
-        "wcag22aa",
-        "best-practice",
-      ])
-      .analyze();
-    expect(results.violations).toEqual([]);
+    expect(await violations(page)).toEqual([]);
   });
 
   test("increased contrast: darker inks, heavier lines, underlined links, still AAA", async ({
@@ -63,36 +73,25 @@ test.describe("accessibility", () => {
     for (const channel of probe.label) expect(channel).toBeLessThan(0x30);
     expect(probe.lineWidth).toBeGreaterThan(1.2);
     expect(probe.underline).toContain("underline");
-    const results = await new AxeBuilder({ page })
-      .withTags([
-        "wcag2a",
-        "wcag2aa",
-        "wcag2aaa",
-        "wcag21a",
-        "wcag21aa",
-        "wcag22aa",
-        "best-practice",
-      ])
-      .analyze();
-    expect(results.violations).toEqual([]);
+    expect(await violations(page)).toEqual([]);
   });
 
   test("increased contrast in dark mode stays AAA", async ({ page }) => {
     await page.emulateMedia({ contrast: "more", colorScheme: "dark" });
     await page.goto("/nl-BE");
-    const results = await new AxeBuilder({ page })
-      .withTags([
-        "wcag2a",
-        "wcag2aa",
-        "wcag2aaa",
-        "wcag21a",
-        "wcag21aa",
-        "wcag22aa",
-        "best-practice",
-      ])
-      .analyze();
-    expect(results.violations).toEqual([]);
+    expect(await violations(page)).toEqual([]);
   });
+
+  for (const path of NOT_FOUND) {
+    for (const { name, media } of MODES) {
+      test(`404 ${path} passes axe AAA (${name})`, async ({ page }) => {
+        await page.emulateMedia(media);
+        const response = await page.goto(path);
+        expect(response?.status()).toBe(404);
+        expect(await violations(page)).toEqual([]);
+      });
+    }
+  }
 
   test("forced colors: structure survives via borders and underlines", async ({
     page,
