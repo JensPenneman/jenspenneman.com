@@ -49,7 +49,7 @@ export default async function LocaleLayout({
   if (!isLocale(locale)) notFound();
   /* set per request by proxy.ts; reading it makes the page render per request */
   const nonce = (await headers()).get("x-nonce") ?? undefined;
-  const jsonLd = buildJsonLd(cvData, locale, new URL(photo.src, siteUrl), new Date(), siteUrl);
+  const jsonLd = buildJsonLd(cvData, locale, new URL(photo.src, siteUrl), siteUrl);
   return (
     <html lang={locale}>
       <body>

@@ -10,10 +10,10 @@ import { familyName, givenName } from "./personName";
  * dateModified are the recommended extras. The Person @id is shared by all
  * locales: one person, four pages.
  *
- * `_today` is the render date; it is deliberately unused. dateModified must
- * say when the CV last changed (cv.json `updated`) -- a page rendered today
- * from last month's data was not modified today. */
-export function buildJsonLd(cv: CvData, locale: Locale, photoUrl: URL, _today: Date, base: URL) {
+ * dateModified says when the CV last changed (cv.json `updated`), never the
+ * render date: a page rendered today from last month's data was not modified
+ * today. */
+export function buildJsonLd(cv: CvData, locale: Locale, photoUrl: URL, base: URL) {
   const employer = currentEmployer(cv.work);
   return {
     "@context": "https://schema.org",
