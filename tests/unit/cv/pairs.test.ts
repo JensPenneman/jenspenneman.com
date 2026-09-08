@@ -8,20 +8,12 @@ import { skillPairs } from "@/lib/cv/skillPairs";
 import { getLabels } from "@/lib/i18n/getLabels";
 
 describe("view-model derivations", () => {
-  it("personaliaPairs formats the birth date and joins the licence list", () => {
+  it("personaliaPairs lists the personalia and joins the licence list", () => {
     const pairs = personaliaPairs(cvData.basics, "nl-BE", getLabels("nl-BE"));
-    expect(pairs.map((p) => p.label)).toEqual([
-      "Nationaliteit",
-      "Rijbewijs",
-      "Geboorteplaats",
-      "Geboortedatum",
-    ]);
+    expect(pairs.map((p) => p.label)).toEqual(["Nationaliteit", "Rijbewijs", "Geboorteplaats"]);
     expect(pairs[0]?.value).toBe("Belg");
     expect(pairs[1]?.value).toBe(cvData.basics.driversLicense.join(", "));
-    expect(pairs[3]?.value).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
-    expect(personaliaPairs(cvData.basics, "de-BE", getLabels("de-BE"))[3]?.value).toMatch(
-      /^\d{2}\.\d{2}\.\d{4}$/,
-    );
+    expect(pairs[2]?.value).toBe("Sint-Niklaas");
   });
 
   it("skillPairs joins keywords with a comma and localizes the category", () => {

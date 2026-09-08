@@ -88,14 +88,10 @@
         "birth": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["place", "date"],
+          "required": ["place"],
           "properties": {
             "place": {
               "type": "string"
-            },
-            "date": {
-              "type": "string",
-              "format": "date"
             }
           }
         },

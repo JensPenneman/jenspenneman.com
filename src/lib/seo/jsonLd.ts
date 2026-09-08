@@ -36,7 +36,6 @@ export function buildJsonLd(cv: CvData, locale: Locale, photoUrl: URL, today: Da
       email: `mailto:${cv.basics.email}`,
       telephone: cv.basics.phone,
       url: cv.basics.url,
-      birthDate: cv.basics.birth.date,
       birthPlace: { "@type": "Place", name: cv.basics.birth.place },
       nationality: { "@type": "Country", name: t(cv.basics.nationality, locale) },
       knowsLanguage: cv.languages.map((l) => t(l.language, locale)),

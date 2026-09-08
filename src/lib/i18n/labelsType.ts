@@ -5,7 +5,6 @@ export type Labels = {
   nationality: string;
   license: string;
   birthPlace: string;
-  birthDate: string;
   work: string;
   skills: string;
   education: string;

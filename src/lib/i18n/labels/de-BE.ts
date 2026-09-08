@@ -6,7 +6,6 @@ export const labels: Labels = {
   nationality: "Staatsangehörigkeit",
   license: "Führerschein",
   birthPlace: "Geburtsort",
-  birthDate: "Geburtsdatum",
   work: "Berufserfahrung",
   skills: "Kenntnisse",
   education: "Ausbildung",
