@@ -814,6 +814,21 @@ h3,
       --dgray: lch(11.76% 0 0);
     }
   }
+  /* A border width is *used* at device-pixel resolution, so a line thinner
+     than 2px can round to the same single pixel the base already paints:
+     1.5 * --pt is 1.98px in the 40-64em band at a smaller root font size,
+     which paints exactly like the 0.5 * --pt base. Every line this mode
+     thickens therefore carries an explicit 2px floor, so increased contrast
+     is always at least one device pixel heavier than the base -- at every
+     width and every user font size. */
+  .pairs dd::before,
+  .row > h2::after,
+  .row h2 {
+    border-bottom-width: max(2px, calc(var(--pt) * var(--line-w)));
+  }
+  ul.links li + li {
+    border-top-width: max(2px, calc(var(--pt) * var(--line-w)));
+  }
   .sheet a {
     text-decoration: underline;
     text-underline-offset: 0.15em;

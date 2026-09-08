@@ -49,15 +49,45 @@ function measureLayout(): Layout {
     const lineHeight = Number.parseFloat(getComputedStyle(parent).lineHeight);
     return Number.isNaN(lineHeight) ? 0 : (lineHeight - rect.height) / 2;
   };
+  /* Text that exists only for assistive technology -- the `.vh` spans that
+     name an entry's organisation, or anything hidden from the accessibility
+     tree -- is absolutely positioned, clipped to a pixel and pulled out of
+     the flow. Its boxes sit wherever its static position happens to fall
+     (centred inside a flex anchor, say), so unioning them with the visible
+     run puts a "text box" nowhere near the type a reader sees, and two
+     neighbouring links then measure as overlapping. Every measurement here
+     is about where type is SEEN, so this walker never leaves that text. */
+  const ASSISTIVE_ONLY = '.vh, [aria-hidden="true"], [hidden]';
   const textNodes = (root: Element) => {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-      acceptNode: (node) =>
-        node.nodeValue?.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT,
+      acceptNode: (node) => {
+        if (!node.nodeValue?.trim()) return NodeFilter.FILTER_REJECT;
+        return node.parentElement?.closest(ASSISTIVE_ONLY)
+          ? NodeFilter.FILTER_REJECT
+          : NodeFilter.FILTER_ACCEPT;
+      },
     });
     const nodes: Text[] = [];
     for (let node = walker.nextNode(); node !== null; node = walker.nextNode())
       nodes.push(node as Text);
     return nodes;
+  };
+  /* the horizontal run of the visible text inside an element: the union of
+     the boxes of its own text nodes, never a Range over the whole element */
+  const textSpan = (root: Element) => {
+    let left = Number.POSITIVE_INFINITY;
+    let right = Number.NEGATIVE_INFINITY;
+    for (const node of textNodes(root)) {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      for (const rect of range.getClientRects()) {
+        if (rect.width === 0 && rect.height === 0) continue;
+        left = Math.min(left, rect.left);
+        right = Math.max(right, rect.right);
+      }
+    }
+    if (!Number.isFinite(left)) throw new Error("expected visible text");
+    return { left, right };
   };
   const edge = (node: Text | undefined, side: "top" | "bottom") => {
     const parent = node?.parentElement;
@@ -81,10 +111,8 @@ function measureLayout(): Layout {
   });
   const round2 = (value: number) => Math.round(value * 100) / 100;
   const textBox = (link: Element) => {
-    const range = document.createRange();
-    range.selectNodeContents(link);
-    const rect = range.getBoundingClientRect();
-    return { textLeft: round2(rect.left), textRight: round2(rect.right) };
+    const span = textSpan(link);
+    return { textLeft: round2(span.left), textRight: round2(span.right) };
   };
 
   const round = (value: number) => Math.round(value * 100) / 100;
@@ -122,46 +150,71 @@ function measureLayout(): Layout {
   for (const link of document.querySelectorAll("address.contact a")) layout.contact.push(row(link));
   for (const link of document.querySelectorAll("nav.lang a")) {
     const box = link.getBoundingClientRect();
-    const range = document.createRange();
-    range.selectNodeContents(link);
     layout.lang.push({
       width: round(box.width),
       height: round(box.height),
       left: round(box.left),
       right: round(box.right),
-      textRight: round(range.getBoundingClientRect().right),
+      textRight: round(textSpan(link).right),
     });
   }
   return layout;
 }
 
-/** Runs in the page: scrolls through the first section, reporting the label's
- *  distance to the top of the viewport at each stop. */
-async function pinFirstLabel() {
-  const section = document.querySelector("section.row");
-  const label = section?.querySelector("h2");
-  if (!section || !label) throw new Error("expected a section with a label");
+/** Runs in the page: scrolls a section up to the top of the viewport,
+ *  reporting its label's distance to that top at each stop.
+ *
+ *  How much of that a window can show depends on how much scroll the page
+ *  has: this CV is short, and a tall window fits nearly all of it on one
+ *  screen. At 1920x1080 the document is 1558px -- 478px of scroll -- so the
+ *  first section (405-458px) pins and stays pinned but never scrolls clean
+ *  past; at 768x1024 there are 232px of scroll and a first section starting
+ *  at 327px, so nothing about pinning is observable at all. The probe picks
+ *  the first section whose stops the scroller can actually reach, says
+ *  whether the last of them was among them, and reports that it saw nothing
+ *  rather than asserting on stops that never happened. */
+async function pinASection() {
   const settle = () =>
     new Promise<void>((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
     );
+  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+  const sections = [...document.querySelectorAll("section.row")].map((section) => {
+    const box = section.getBoundingClientRect();
+    return { section, top: box.top + window.scrollY, bottom: box.bottom + window.scrollY };
+  });
+  /* Only a stop the scroller can actually reach says anything. Prefer a
+     section the page can scroll clean past -- that shows the label leaving
+     with it too -- and settle for one whose middle is reachable, which still
+     shows it pinning and staying pinned. */
+  const scrolledPast = sections.find((s) => s.bottom + 40 <= maxScroll);
+  const candidate = scrolledPast ?? sections.find((s) => (s.top + s.bottom) / 2 <= maxScroll);
+  if (!candidate)
+    return {
+      unobservable:
+        `no section reaches the top of a ${window.innerHeight}px window ` +
+        `with ${Math.round(maxScroll)}px of scroll ` +
+        `(document ${document.documentElement.scrollHeight}px)`,
+    } as const;
+  const label = candidate.section.querySelector("h2");
+  if (!label) throw new Error("expected a section with a label");
   const at = async (y: number) => {
     window.scrollTo({ top: Math.max(0, y), behavior: "instant" });
     await settle();
     return Math.round(label.getBoundingClientRect().top * 100) / 100;
   };
-  const box = section.getBoundingClientRect();
-  const top = box.top + window.scrollY;
-  const bottom = box.bottom + window.scrollY;
   const style = getComputedStyle(label);
   const measured = {
+    id: label.id,
+    /* whether this window can also show the label leaving with its section */
+    leaves: candidate === scrolledPast,
     position: style.position,
     /* an opaque ground, so content may scroll underneath it */
     transparent: ["transparent", "rgba(0, 0, 0, 0)"].includes(style.backgroundColor),
     documentHeight: document.documentElement.scrollHeight,
-    onEnteringSection: await at(top + 1),
-    inMidSection: await at((top + bottom) / 2),
-    pastSection: await at(bottom + 40),
+    onEnteringSection: await at(candidate.top + 1),
+    inMidSection: await at((candidate.top + candidate.bottom) / 2),
+    pastSection: await at(candidate.bottom + 40),
   };
   window.scrollTo({ top: 0, behavior: "instant" });
   await settle();
@@ -256,13 +309,24 @@ test.describe("screen layout", () => {
 
   test("pins a section label for the length of its section", async ({ page }) => {
     await page.goto("/nl-BE");
-    const pinned = await page.evaluate(pinFirstLabel);
+    const pinned = await page.evaluate(pinASection);
+    if ("unobservable" in pinned) {
+      test.skip(true, `sticky labels are not observable here: ${pinned.unobservable}`);
+      return;
+    }
     expect(pinned.position).toBe("sticky");
     expect(pinned.transparent).toBe(false);
-    expect(Math.abs(pinned.onEnteringSection)).toBeLessThanOrEqual(TOLERANCE);
-    expect(Math.abs(pinned.inMidSection)).toBeLessThanOrEqual(TOLERANCE);
-    /* and then it leaves with its own section */
-    expect(pinned.pastSection).toBeLessThan(0);
+    expect(
+      Math.abs(pinned.onEnteringSection),
+      `${pinned.id} did not pin on entering`,
+    ).toBeLessThanOrEqual(TOLERANCE);
+    expect(Math.abs(pinned.inMidSection), `${pinned.id} did not stay pinned`).toBeLessThanOrEqual(
+      TOLERANCE,
+    );
+    /* and then it leaves with its own section -- only where the page has the
+       scroll to show it (a tall window fits most of this CV on one screen) */
+    if (pinned.leaves)
+      expect(pinned.pastSection, `${pinned.id} did not leave with its section`).toBeLessThan(0);
     /* sticky must not reflow: scrolling changes nothing about the page */
     expect(pinned.heightAfterScrolling).toBe(pinned.documentHeight);
   });
