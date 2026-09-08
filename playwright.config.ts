@@ -36,11 +36,6 @@ export default defineConfig({
       name: "tablet",
       testDir: "tests/e2e",
       testMatch: GEOMETRY,
-      /* The whole CV very nearly fits a 1024pt-tall viewport at this width
-       * (1147px of document, 123px of scroll), so no scroll position can pin
-       * the first label: the assertion has nothing to observe here, it is not
-       * failing. Every other geometry assertion runs. */
-      grepInvert: /pins a section label/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 768, height: 1024 } },
     },
     {
