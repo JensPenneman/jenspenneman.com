@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { holidayJobsMeta } from "@/lib/cv/holidayJobsMeta";
 import { getLabels } from "@/lib/i18n/getLabels";
 
-const RANGE = "\u00a0\u2013\u00a0";
+const RANGE = "\u00a0– ";
 
 describe("holidayJobsMeta", () => {
   const base = { count: 5, companies: ["Bpost", "Storaenso"], startYear: "2017", endYear: "2022" };
