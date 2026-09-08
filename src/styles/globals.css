@@ -312,6 +312,17 @@ h1 {
   text-wrap: balance;
 }
 
+/* The name and the job title are two spans so each can break by its own
+   rules. A surname is never hyphenated and never split (the balanced h1 keeps
+   it whole); a compound job title -- German "Softwareentwickler" -- is, and
+   only hyphenation stops `overflow-wrap` from snapping it mid-morpheme at
+   320px with large text. Screen only: the printed h1 never wraps. */
+@media screen {
+  h1 .title {
+    hyphens: auto;
+  }
+}
+
 .intro {
   margin-top: calc(var(--pt) * 5.7);
   font-size: calc(var(--pt) * 12);
