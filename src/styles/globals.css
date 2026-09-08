@@ -243,7 +243,11 @@ h2 {
        user font size. */
     scroll-padding-top: 3.75rem;
   }
+  /* `scroll-padding-top` above clears a pinned label for every other focus
+     target; a jump to a section's own label wants no clearance at all -- the
+     label IS what pins to the top -- so it cancels the padding for itself. */
   .row > h2 {
+    scroll-margin-top: -3.75rem;
     position: sticky;
     top: 0;
     align-self: start;
