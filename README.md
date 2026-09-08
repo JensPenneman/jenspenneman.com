@@ -9,6 +9,7 @@ app/            Next App Router: routes + metadata file conventions only
   [locale]/     root layout (html lang, JSON-LD, metadata), page, build-time OG card
   global-not-found.tsx  404 in the CV design with a link per language
   llms.txt/route.ts     llmstxt.org summary, generated from the data model
+  csp/route.ts          first-party collector for CSP violation reports
   sitemap.ts robots.ts manifest.ts icon0.png icon1.svg apple-icon.png
 src/
   assets/       photo.jpg + the build-time OG card fonts
@@ -25,9 +26,9 @@ scripts/        images (prebuild), icons (manual), hooks (local git hooks),
                 lighthouse (score gate), indexnow (search-engine ping)
 proxy.ts        per-request nonce CSP, Accept-Language negotiation, 404 rewrite
 tests/unit/     Vitest: formatters, i18n, data-model rules, SEO, components
-tests/e2e/      Playwright: a11y, bfcache, content, layout, platform, print,
-                security (+ pdfText.ts, a dependency-free reader for the
-                printed PDF)
+tests/e2e/      Playwright: a11y, bfcache, content, http, layout, platform,
+                print, security (+ pdfText.ts, a dependency-free reader for
+                the printed PDF)
 tests/visual/   Playwright screenshot baselines (macOS)
 ```
 
@@ -167,7 +168,9 @@ document carries the policy it will be shown with. It negotiates
 matches, so `global-not-found` renders it while the status stays 404; answers
 anything but `GET`/`HEAD` with 405 and normalises the trailing slash; and sets
 `Cache-Control: private, max-age=0, must-revalidate` in place of Next's
-`no-store` (see Performance).
+`no-store` (see Performance). It also names the first-party violation
+collector, through `Reporting-Endpoints` and the legacy `report-uri` that
+WebKit still needs.
 
 It sets a strict, **per-request nonce** Content-Security-Policy
 (`default-src 'none'; script-src 'nonce-…' 'strict-dynamic'; style-src 'self'
@@ -175,7 +178,8 @@ It sets a strict, **per-request nonce** Content-Security-Policy
 script and style it emits; `upgrade-insecure-requests` is added only over
 HTTPS. The remaining headers (HSTS with preload, nosniff, X-Frame-Options,
 Referrer-Policy, Permissions-Policy, COOP, CORP,
-X-Permitted-Cross-Domain-Policies) come from `next.config.ts`.
+X-Permitted-Cross-Domain-Policies, Origin-Agent-Cluster) come from
+`next.config.ts`.
 `/.well-known/security.txt` (RFC 9116) is in public/; the GitHub repository
 requires signed commits, CI and CodeQL on `main`. E2E asserts the policy and
 that pages load without a single CSP violation. After the first deploy on a
